@@ -25,8 +25,6 @@ function InitFuseBenchmark() {
     fi 
 
     # for boto3 aws-cli tools
-    export AWS_ACCESS_KEY_ID=${ACCESS_KEY}
-    export AWS_SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY}
     export BUCKET_NAME=nsdf-fuse-test-${NAME}
 
     # CACHE SIZE IN MB, make it small so that numbers are not affected too much by disk cache
@@ -42,7 +40,7 @@ function InitFuseBenchmark() {
     export LOG_DIR=${BASE_DIR}/log
 
     echo "BUCKET_NAME:        ${BUCKET_NAME}"
-    echo "BUCKET_REGION:      ${BUCKET_REGION}"
+    echo "BUCKET_REGION:      ${AWS_DEFAULT_REGION}"
     echo "DISK_CACHE_SIZE_MB: ${DISK_CACHE_SIZE_MB}"
     echo "RAM_CACHE_SIZE_MB:  ${RAM_CACHE_SIZE_MB}"
     echo "BASE_DIR:           ${BASE_DIR}"
@@ -69,7 +67,7 @@ function CheckFuseMount() {
     echo "CheckFuseMount ${NAME}..."
     mount
     echo "hello" > ${TEST_DIR}/first_file
-    aws s3api list-objects --bucket ${BUCKET_NAME} --region ${BUCKET_REGION}    
+    aws s3api list-objects --bucket ${BUCKET_NAME} --region ${AWS_DEFAULT_REGION}    
 
     
     echo "CheckFuseMount ${NAME} done"  

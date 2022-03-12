@@ -20,13 +20,13 @@ chmod +x juicefs
 sudo mv juicefs /usr/bin
 
 # create the bucket if necessary
-aws s3 mb s3://${BUCKET_NAME} --region ${BUCKET_REGION} 
+aws s3 mb s3://${BUCKET_NAME} --region ${AWS_DEFAULT_REGION} 
 
 juicefs auth \
     ${BUCKET_NAME} \
     --token ${JUICE_TOKEN} \
-    --accesskey ${ACCESS_KEY} \
-    --secretkey ${SECRET_ACCESS_KEY} 
+    --accesskey ${AWS_ACCESS_KEY_ID} \
+    --secretkey ${AWS_SECRET_ACCESS_KEY} 
 
 # TODO: make sure juicefs is not using RAM cache
 juicefs mount \

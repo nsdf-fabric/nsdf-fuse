@@ -22,13 +22,13 @@ sudo python3 setup.py install
 mkdir -p ${HOME}/.s3ql/
 cat << EOF > ${HOME}/.s3ql/authinfo2
 [default]
-backend-login: ${ACCESS_KEY}
-backend-password: ${SECRET_ACCESS_KEY}
+backend-login: ${AWS_ACCESS_KEY_ID}
+backend-password: ${AWS_SECRET_ACCESS_KEY}
 EOF
 chmod 600 ${HOME}/.s3ql/authinfo2
 
 # create the bucket if necessary
-aws s3 mb s3://${BUCKET_NAME} --region ${BUCKET_REGION} 
+aws s3 mb s3://${BUCKET_NAME} --region ${AWS_DEFAULT_REGION} 
 
 # create the bucket
 # https://www.rath.org/s3ql-docs/man/mkfs.html
@@ -37,12 +37,12 @@ sudo mkfs.s3ql  \
     --log ${LOG_DIR}/log \
     --authfile ${HOME}/.s3ql/authinfo2 \
     --plain \
-    s3://${BUCKET_REGION}/${BUCKET_NAME}
+    s3://${AWS_DEFAULT_REGION}/${BUCKET_NAME}
 
 # mount it
 # https://www.rath.org/s3ql-docs/man/mount.html
 # TODO: disable RAM cache
-sudo mount.s3ql s3://${BUCKET_REGION}/${BUCKET_NAME} ${TEST_DIR} \
+sudo mount.s3ql s3://${AWS_DEFAULT_REGION}/${BUCKET_NAME} ${TEST_DIR} \
     --cachedir ${CACHE_DIR} \
     --log ${LOG_DIR}/log \
     --authfile ${HOME}/.s3ql/authinfo2 \

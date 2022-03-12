@@ -22,11 +22,11 @@ if [[ "0" == "1" ]] ; then
 fi
 
 # create the bucket if necessary
-aws s3 mb s3://${BUCKET_NAME} --region ${BUCKET_REGION} 
+aws s3 mb s3://${BUCKET_NAME} --region ${AWS_DEFAULT_REGION} 
 
 # logs goes to syslog (==there is no way to redirect it?)
 goofys \
-    --region ${BUCKET_REGION} \
+    --region ${AWS_DEFAULT_REGION} \
     ${BUCKET_NAME} \
     ${TEST_DIR}
 

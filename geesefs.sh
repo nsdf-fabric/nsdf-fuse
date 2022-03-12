@@ -13,7 +13,7 @@ if [[ ! -f /usr/bin/geesefs ]] ; then
 fi
 
 # create the bucket if necessary
-aws s3 mb s3://${BUCKET_NAME} --region ${BUCKET_REGION} 
+aws s3 mb s3://${BUCKET_NAME} --region ${AWS_DEFAULT_REGION} 
 
 # create a file with the credentials
 mkdir -p ${HOME}/.aws
@@ -33,7 +33,7 @@ geesefs \
     --max-parallel-parts 32 \
     --part-sizes 25 \
     --log-file ${LOG_DIR}/log.txt \
-    --endpoint https://s3.${BUCKET_REGION}.amazonaws.com \
+    --endpoint https://s3.${AWS_DEFAULT_REGION}.amazonaws.com \
     ${BUCKET_NAME} ${TEST_DIR} 
 
 CheckFuseMount geesefs

@@ -20,7 +20,7 @@ S3_BACKEND_DIR=${BASE_DIR}/s3_backend
 mkdir -p ${S3_BACKEND_DIR}
 
 # create the bucket if necessary
-aws s3 mb s3://${BUCKET_NAME} --region ${BUCKET_REGION} 
+aws s3 mb s3://${BUCKET_NAME} --region ${AWS_DEFAULT_REGION} 
 
 # Explanation:
 #   Linux loop back mount
@@ -31,7 +31,7 @@ s3backer \
     --blockCacheFile=${BLOCK_CACHE_FILE} \
     --blockSize=${BLOCK_SIZE_MB}M \
     --size=${OVERALL_SIZE} \
-    --region=${BUCKET_REGION} \
+    --region=${AWS_DEFAULT_REGION} \
     --blockCacheSize=${NUM_BLOCK_TO_CACHE} \
     --blockCacheThreads=${NUM_THREADS} \
     ${BUCKET_NAME} \

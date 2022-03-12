@@ -22,7 +22,7 @@ sudo chmod ug+rwX,a-rwX -R /etc/objectivefs.env
 sudo cat << EOF > /tmp/ofs_create_bucket.sh
 #!/usr/bin/expect -f
 set timeout -1
-spawn mount.objectivefs create -l ${BUCKET_REGION} ${BUCKET_NAME}
+spawn mount.objectivefs create -l ${AWS_DEFAULT_REGION} ${BUCKET_NAME}
 match_max 100000
 expect -exact "for s3://${BUCKET_NAME}): "
 send -- "${OBJECTIVEFS_LICENSE}\r"
