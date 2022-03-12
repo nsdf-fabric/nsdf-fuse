@@ -26,15 +26,14 @@ cd nsdf-fuse-test
 #       ${HOME}/mount/${BUCKET_NAME} where BUCKET_NAME is for example nsdf-fuse-test-s3fs
 
 
-./juicefs.sh      # fast
-./goofys.sh       # fast
-./geesefs.sh      # slow
+./juicefs.sh      # fast OK
+./goofys.sh       # fast OK
+./geesefs.sh      # slow 
 ./objectivefs.sh  # slow 
 ./s3backer.sh     # slow (POSIX compatibility via regular linux file system)
 ./s3fs.sh         # slow
 ./s3ql.sh         # slow 
 ```
-
 
 # Benchmarks
 

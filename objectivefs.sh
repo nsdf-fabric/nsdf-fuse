@@ -36,11 +36,12 @@ sudo /tmp/ofs_create_bucket.sh
 
 # see https://objectivefs.com/howto/performance-amazon-efs-vs-objectivefs-large-files
 # cannot change log location
-sudo \
-    DISKCACHE_SIZE=${DISK_CACHE_SIZE_MB}M \
-    DISKCACHE_PATH=${CACHE_DIR} \
-    CACHESIZE=${RAM_CACHE_SIZE_MB} \
-    mount.objectivefs -o mt s3://${BUCKET_NAME} ${TEST_DIR}
+export  DISKCACHE_SIZE=${DISK_CACHE_SIZE_MB}M
+export  DISKCACHE_PATH=${CACHE_DIR}
+export  CACHESIZE=${RAM_CACHE_SIZE_MB}
+
+sudo mount.objectivefs -o mt s3://${BUCKET_NAME} ${TEST_DIR}
+sudo chmod 777 -R ${BASE_DIR} 
 
 CheckFuseMount objectivefs
 RunDiskTest ${TEST_DIR}  

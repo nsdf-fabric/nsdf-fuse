@@ -68,27 +68,47 @@ function RunDiskTest() {
     mkdir -p ${TEST_DIR}
     rm -Rf   ${TEST_DIR}/* 
 
-    # one sequential (tot-storage=filesize*numjobs=64G fuse-activity=size=64G)
-    RunFioWriteTest --name=one-seq-write   --rw=write --bs=4M --filesize=64G --numjobs=1     --size=64G 
-    RunFioReadTest  --name=one-seq-read    --rw=read  --bs=4M --filesize=64G --numjobs=1     --size=64G 
-    rm -Rf $TEST_DIR/* 
+    if [[ "${FAST}" == "1" ]] ; then
 
-    # multi sequential (tot-storage=filesize*numjobs=64G fuse-activity=size=64G)
-    RunFioWriteTest --name=multi-seq-write --rw=write --bs=4M  --filesize=1G  --numjobs=64   --size=64G   
-    RunFioReadTest  --name=multi-seq-read  --rw=read  --bs=4M  --filesize=1G  --numjobs=64   --size=64G
-    rm -Rf $TEST_DIR/*
+        # one sequential (tot-storage=filesize*numjobs=64G fuse-activity=size=64G)
+        RunFioWriteTest --name=one-seq-write   --rw=write --bs=4M --filesize=64M --numjobs=1     --size=64M
+        RunFioReadTest  --name=one-seq-read    --rw=read  --bs=4M --filesize=64M --numjobs=1     --size=64M 
+        rm -Rf $TEST_DIR/* 
 
-    # rand test (tot-storage=filesize*numjobs=64G fuse-activity=numjobs*size=8G) (WEIRD: rand test use --size with a different meaning)
-    RunFioWriteTest --name=rand-write --rw=randwrite  --bs=64k  --filesize=2G --numjobs=32   --size=256M
-    RunFioReadTest  --name=rand-read  --rw=randread   --bs=64k  --filesize=2G --numjobs=32   --size=256M 
-    rm -Rf $TEST_DIR/* 
+        # multi sequential (tot-storage=filesize*numjobs=64G fuse-activity=size=64G)
+        RunFioWriteTest --name=multi-seq-write --rw=write --bs=4M  --filesize=1M  --numjobs=64   --size=64M 
+        RunFioReadTest  --name=multi-seq-read  --rw=read  --bs=4M  --filesize=1M  --numjobs=64   --size=64M
+        rm -Rf $TEST_DIR/*
 
-    # equivalent ?
-    # sysbench fileio --file-total-size=64G --file-test-mode=seqwr --time=30 --max-requests=0 --threads 64 prepare  
-    # sysbench fileio --file-total-size=64G --file-test-mode=seqwr --time=30 --max-requests=0 --threads 64 run  
-    # sysbench fileio --file-total-size=64G --file-test-mode=seqwr --time=30 --max-requests=0 --threads 64 clean  
+        # rand test (tot-storage=filesize*numjobs=64G fuse-activity=numjobs*size=8G) (WEIRD: rand test use --size with a different meaning)
+        RunFioWriteTest --name=rand-write --rw=randwrite  --bs=64k  --filesize=2G --numjobs=32   --size=256M
+        RunFioReadTest  --name=rand-read  --rw=randread   --bs=64k  --filesize=2G --numjobs=32   --size=256M 
+        rm -Rf $TEST_DIR/* 
 
-    RunTarTest
+        RunTarTest       
+        m -Rf $TEST_DIR/*  
+        
+    else
+
+        # one sequential (tot-storage=filesize*numjobs=64G fuse-activity=size=64G)
+        RunFioWriteTest --name=one-seq-write   --rw=write --bs=4M --filesize=64G --numjobs=1     --size=64G 
+        RunFioReadTest  --name=one-seq-read    --rw=read  --bs=4M --filesize=64G --numjobs=1     --size=64G 
+        rm -Rf $TEST_DIR/* 
+
+        # multi sequential (tot-storage=filesize*numjobs=64G fuse-activity=size=64G)
+        RunFioWriteTest --name=multi-seq-write --rw=write --bs=4M  --filesize=1G  --numjobs=64   --size=64G   
+        RunFioReadTest  --name=multi-seq-read  --rw=read  --bs=4M  --filesize=1G  --numjobs=64   --size=64G
+        rm -Rf $TEST_DIR/*
+
+        # rand test (tot-storage=filesize*numjobs=64G fuse-activity=numjobs*size=8G) (WEIRD: rand test use --size with a different meaning)
+        RunFioWriteTest --name=rand-write --rw=randwrite  --bs=64k  --filesize=2G --numjobs=32   --size=256M
+        RunFioReadTest  --name=rand-read  --rw=randread   --bs=64k  --filesize=2G --numjobs=32   --size=256M 
+        rm -Rf $TEST_DIR/* 
+
+        RunTarTest
+        m -Rf $TEST_DIR/* 
+
+    fi
 
     echo "RunDiskTest TEST_DIR=${TEST_DIR} done"
 }
