@@ -35,12 +35,18 @@ sudo s3backer \
     --blockCacheSize=${NUM_BLOCK_TO_CACHE} \
     --blockCacheThreads=${NUM_THREADS} \
     -o default_permissions,allow_other \
-    -o uid=$UID
+    -o uid=$UID \
     ${BUCKET_NAME} \
     ${S3_BACKEND_DIR}  
 
 mkfs.ext4 -E nodiscard -F ${S3_BACKEND_DIR}/file
-mount -o loop -o discard ${S3_BACKEND_DIR}/file ${TEST_DIR}
+sudo mount \
+    -o loop \
+    -o discard \
+    -o default_permissions,allow_other \
+    -o uid=$UID \    
+    ${S3_BACKEND_DIR}/file \
+    ${TEST_DIR}
 
 # sudo chmod 777 -R ${BASE_DIR} || true
 
