@@ -1,10 +1,7 @@
 #!/bin/bash
 
-source $(dirname $0)/utils.sh
+source ./utils.sh
 InitFuseBenchmark goofys
-
-sudo apt update
-sudo apt install -y nload fio expect python3 python3-pip fuse libfuse-dev awscli
 
 # install goofys
 wget https://github.com/kahing/goofys/releases/latest/download/goofys

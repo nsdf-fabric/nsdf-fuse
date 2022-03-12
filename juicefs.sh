@@ -1,6 +1,7 @@
 #!/bin/bash
 
-source $(dirname $0)/utils.sh
+source ./utils.sh
+InitFuseBenchmark juicefs
 
 echo "///////////////////////////////////////////////////////////////////////"
 echo "WARNING the JuiceFs file system must have been created in juicefs      "
@@ -10,12 +11,6 @@ echo "WARNING the token must be set as environment variable                  "
 echo "///////////////////////////////////////////////////////////////////////"
 
 export JUICE_TOKEN=${JUICE_TOKEN:-XXXXX}
-
-InitFuseBenchmark juicefs
-
-# update the system
-sudo apt update
-sudo apt install -y nload fio expect python3 python3-pip fuse libfuse-dev awscli
 
 # install juicefs
 wget -q https://juicefs.com/static/juicefs

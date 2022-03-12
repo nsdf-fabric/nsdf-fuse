@@ -1,12 +1,9 @@
 #!/bin/bash
 
-source $(dirname $0)/utils.sh
+source ./utils.sh
 InitFuseBenchmark objectivefs
 
 OBJECTIVEFS_LICENSE=${OBJECTIVEFS_LICENSE:-XXXXX}
-
-sudo apt update
-sudo apt install -y nload fio expect python3 python3-pip fuse libfuse-dev awscli
 
 # install objectivefs
 wget -q https://objectivefs.com/user/download/asn7gu3nd/objectivefs_6.9.1_amd64.deb

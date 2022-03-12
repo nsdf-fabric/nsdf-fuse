@@ -3,13 +3,16 @@
 # exit when any command fails
 set -e
 
-
 # ///////////////////////////////////////////////////////////
 function InitFuseBenchmark() {
 
     NAME=$1
 
     echo "InitFuseBenchmark ${NAME}..."
+
+    # update the system
+    sudo apt -qq update
+    sudo apt -qq install -y nload fio expect python3 python3-pip fuse libfuse-dev awscli
 
     # for boto3 aws-cli tools
     export AWS_ACCESS_KEY_ID=${ACCESS_KEY}

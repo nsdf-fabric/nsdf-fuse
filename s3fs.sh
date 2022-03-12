@@ -1,11 +1,7 @@
 #!/bin/bash
 
-source $(dirname $0)/utils.sh
+source ./utils.sh
 InitFuseBenchmark s3fs
-
-# update the system
-sudo apt update
-sudo apt install -y nload fio expect python3 python3-pip fuse libfuse-dev awscli
 
 # install s3fs
 sudo apt install -y s3fs 

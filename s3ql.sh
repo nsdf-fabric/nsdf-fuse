@@ -1,10 +1,7 @@
 #!/bin/bash
 
-source $(dirname $0)/utils.sh
+source ./utils.sh
 InitFuseBenchmark s3ql
-
-sudo apt update
-sudo apt install -y nload fio expect python3 python3-pip fuse libfuse-dev awscli
 
 # https://www.brightbox.com/docs/guides/s3ql/
 wget https://github.com/s3ql/s3ql/releases/download/release-3.8.1/
@@ -15,7 +12,7 @@ sudo apt install -y sqlite3 libsqlite3-dev pkg-config fuse3 libfuse3-dev
 
 sudo pip3 install --upgrade pip
 sudo pip3 install pyfuse3 google-auth-oauthlib
-sudo pip3 install --upgrade  trio
+sudo pip3 install --upgrade trio
 
 python3 setup.py build_ext --inplace
 sudo python3 setup.py install 

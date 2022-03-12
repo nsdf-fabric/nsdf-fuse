@@ -1,12 +1,7 @@
 #!/bin/bash
 
-source $(dirname $0)/utils.sh
-
+source ./utils.sh
 InitFuseBenchmark geesefs
-
-# update the system
-sudo apt update
-sudo apt install -y nload fio expect python3 python3-pip fuse libfuse-dev awscli
 
 # install geesefs
 wget https://github.com/yandex-cloud/geesefs/releases/latest/download/geesefs-linux-amd64
