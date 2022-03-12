@@ -88,9 +88,13 @@ function TerminateFuseBenchmark() {
     du -hs ${CACHE_DIR}
 
     # just to be extra sure the data is removed from cloud
-    sudo rm -Rf   ${TEST_DIR}/*
+    # ths can fail
+    # sudo rm -Rf   ${TEST_DIR}/*
+
     sudo umount   ${TEST_DIR}
     rm -Rf        ${BASE_DIR}
+
+    # check there is no mount
     mount
 
     # destroy the bucket
