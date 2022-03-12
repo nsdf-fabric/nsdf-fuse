@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e # exit when any command fails
 
 source ./utils.sh
 InitFuseBenchmark s3backer

@@ -1,12 +1,15 @@
 #!/bin/bash
+set -e # exit when any command fails
 
 source ./utils.sh
 InitFuseBenchmark geesefs
 
 # install geesefs
-wget https://github.com/yandex-cloud/geesefs/releases/latest/download/geesefs-linux-amd64
-sudo mv geesefs-linux-amd64 /usr/bin/geesefs
-chmod a+x /usr/bin/geesefs
+if [[ ! -f /usr/bin/geesefs ]] ; then
+    wget https://github.com/yandex-cloud/geesefs/releases/latest/download/geesefs-linux-amd64
+    sudo mv geesefs-linux-amd64 /usr/bin/geesefs
+    chmod a+x /usr/bin/geesefs
+fi
 
 # create the bucket if necessary
 aws s3 mb s3://${BUCKET_NAME} --region ${BUCKET_REGION} 
@@ -29,7 +32,7 @@ geesefs \
     --max-parallel-parts 32 \
     --part-sizes 25 \
     --log-file ${LOG_DIR}/log.txt \
-    --endpoint https://s3.us-east-1.amazonaws.com \
+    --endpoint https://s3.${BUCKET_REGION}.amazonaws.com \
     ${BUCKET_NAME} ${TEST_DIR} 
 
 CheckFuseMount geesefs

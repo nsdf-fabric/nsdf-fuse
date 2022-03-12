@@ -1,8 +1,5 @@
 #!/bin/bash 
 
-# exit when any command fails
-set -e
-
 # ///////////////////////////////////////////////////////////
 function InitFuseBenchmark() {
 
@@ -12,7 +9,20 @@ function InitFuseBenchmark() {
 
     # update the system
     sudo apt -qq update
-    sudo apt -qq install -y nload fio expect python3 python3-pip fuse libfuse-dev awscli
+    sudo apt -qq install -y nload expect python3 python3-pip fuse libfuse-dev awscli
+
+    # I need a recent version of fio
+    if [[ ! -f ${HOME}/fio/fio_installed ]] ; then
+        pushd ${HOME}
+        git clone https://github.com/axboe/fio
+        cd fio
+        ./configure
+        make 
+        sudo make install
+        sudo cp /usr/local/bin/fio /usr/bin/fio # overwite eventually existing one
+        touch ./fio_installed
+        popd 
+    fi 
 
     # for boto3 aws-cli tools
     export AWS_ACCESS_KEY_ID=${ACCESS_KEY}
@@ -41,7 +51,10 @@ function InitFuseBenchmark() {
     echo "LOG_DIR:            ${LOG_DIR}"
 
     # create and share the directory
-    sudo mkdir     -p ${BASE_DIR} ${TEST_DIR} ${CACHE_DIR} ${LOG_DIR}
+    sudo mkdir     -p ${BASE_DIR}  || true
+    sudo mkdir     -p ${TEST_DIR}  || true
+    sudo mkdir     -p ${CACHE_DIR} || true
+    sudo mkdir     -p ${LOG_DIR}   || true
     sudo chmod 777 -R ${BASE_DIR} 
 
     echo "InitFuseBenchmark ${NAME} done"
@@ -93,17 +106,18 @@ function RunFioTest() {
     # some options are stolen from https://docs.weka.io/v/3.10/testing-and-troubleshooting/testing-weka-system-performance
     # Also: I am checking real network traffic by `sudo nload -u M -U M``
 
-    echo "Starting test [$1]..." 
+    echo "Starting test [$1] TEST_DIR=${TEST_DIR}..." 
+    set -x
     fio $@ \
         --directory=${TEST_DIR} \
         --filename_format='$jobnum/$filenum/test.$jobnum.$filenum.bin' \
-           --ioengine=posixaio \
-           --exitall_on_error=1 \
-           --create_serialize=0 \
-           --end_fsync=1 \
-           --disk_util=0 \
-           --direct=1 
-
+        --ioengine=posixaio \
+        --exitall_on_error=1 \
+        --create_serialize=0 \
+        --end_fsync=1 \
+        --disk_util=0 \
+        --direct=1 
+    set +x
     echo "Test [$1] done"
     echo
 
