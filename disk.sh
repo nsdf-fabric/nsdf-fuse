@@ -17,6 +17,7 @@ function RunFioTest() {
         --create_serialize=0 \
         --end_fsync=1 \
         --disk_util=0 \
+        -- group_reporting \
         --direct=1 || true # i have spurious error so I am ignoring errors here
     set +x
     echo "Test [$1] done"
