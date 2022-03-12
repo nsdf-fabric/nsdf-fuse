@@ -31,8 +31,8 @@ send -- "${OBJECTIVEFS_LICENSE}\r"
 expect eof
 EOF
 
-chmod a+x ofs_create_bucket.sh
-sudo ./ofs_create_bucket.sh
+chmod a+x /tmp/ofs_create_bucket.sh
+sudo /tmp/ofs_create_bucket.sh
 
 # see https://objectivefs.com/howto/performance-amazon-efs-vs-objectivefs-large-files
 # cannot change log location
@@ -46,4 +46,4 @@ CheckFuseMount objectivefs
 RunDiskTest ${TEST_DIR}  
 TerminateFuseBenchmark objectivefs
 
-rm -f ofs_create_bucket.sh
+rm -f /tmp/ofs_create_bucket.sh
