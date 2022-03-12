@@ -40,6 +40,8 @@ s3backer \
 mkfs.ext4 -E nodiscard -F ${S3_BACKEND_DIR}/file
 sudo mount -o loop -o discard ${S3_BACKEND_DIR}/file ${TEST_DIR}
 
+sudo chmod 777 -R ${BASE_DIR}
+
 CheckFuseMount s3backer
 RunDiskTest ${TEST_DIR}  
 TerminateFuseBenchmark s3backer

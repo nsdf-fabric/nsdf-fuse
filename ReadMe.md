@@ -30,9 +30,10 @@ cd nsdf-fuse-test
 ./goofys.sh       # fast OK
 ./geesefs.sh      # slow 
 ./objectivefs.sh  # slow 
-./s3backer.sh     # slow (POSIX compatibility via regular linux file system)
+./s3backer.sh     # slow 
 ./s3fs.sh         # slow
 ./s3ql.sh         # slow 
+./rclone.sh       # slow
 ```
 
 # Benchmarks
