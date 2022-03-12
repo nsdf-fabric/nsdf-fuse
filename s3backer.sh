@@ -35,6 +35,7 @@ sudo s3backer \
     --blockCacheSize=${NUM_BLOCK_TO_CACHE} \
     --blockCacheThreads=${NUM_THREADS} \
     -o default_permissions,allow_other \
+    -o uid=$UID
     ${BUCKET_NAME} \
     ${S3_BACKEND_DIR}  
 
