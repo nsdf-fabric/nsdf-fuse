@@ -25,7 +25,7 @@ aws s3 mb s3://${BUCKET_NAME} --region ${AWS_DEFAULT_REGION}
 # Explanation:
 #   Linux loop back mount
 #   s3backer <---> remote S3 storage
-s3backer \
+sudo s3backer \
     --accessId=${AWS_ACCESS_KEY_ID} \
     --accessKey=${AWS_SECRET_ACCESS_KEY} \
     --blockCacheFile=${BLOCK_CACHE_FILE} \
@@ -34,6 +34,7 @@ s3backer \
     --region=${AWS_DEFAULT_REGION} \
     --blockCacheSize=${NUM_BLOCK_TO_CACHE} \
     --blockCacheThreads=${NUM_THREADS} \
+    -o default_permissions,allow_other \
     ${BUCKET_NAME} \
     ${S3_BACKEND_DIR}  
 
