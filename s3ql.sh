@@ -5,19 +5,21 @@ source ./utils.sh
 source ./disk.sh
 InitFuseBenchmark s3ql
 
-# https://www.brightbox.com/docs/guides/s3ql/
-wget https://github.com/s3ql/s3ql/releases/download/release-3.8.1/
-tar xzf s3ql-3.8.1.tar.gz
-cd s3ql-3.8.1
-sudo apt install -y 
 sudo apt install -y sqlite3 libsqlite3-dev pkg-config fuse3 libfuse3-dev
-
 sudo pip3 install --upgrade pip
-sudo pip3 install pyfuse3 google-auth-oauthlib
+sudo pip3 install pyfuse3 google-auth-oauthlib dugong apsw defusedxml
 sudo pip3 install --upgrade trio
 
-python3 setup.py build_ext --inplace
-sudo python3 setup.py install 
+# https://www.brightbox.com/docs/guides/s3ql/
+if [[ ! -f /usr/local/bin/s3qlstat ]] ; then
+    wget https://github.com/s3ql/s3ql/releases/download/release-3.8.1/s3ql-3.8.1.tar.gz
+    tar xzf s3ql-3.8.1.tar.gz
+    pushd s3ql-3.8.1
+    python3 setup.py build_ext --inplace
+    sudo python3 setup.py install 
+    popd
+    sudo rm -Rf s3ql-3.8.1.tar.gz s3ql-3.8.1
+fi
 
 mkdir -p ${HOME}/.s3ql/
 cat << EOF > ${HOME}/.s3ql/authinfo2
@@ -30,6 +32,8 @@ chmod 600 ${HOME}/.s3ql/authinfo2
 # create the bucket if necessary
 aws s3 mb s3://${BUCKET_NAME} --region ${AWS_DEFAULT_REGION} 
 
+sudo chmod -R a+rwX ${BASE_DIR}
+
 # create the bucket
 # https://www.rath.org/s3ql-docs/man/mkfs.html
 sudo mkfs.s3ql  \
@@ -39,15 +43,16 @@ sudo mkfs.s3ql  \
     --plain \
     s3://${AWS_DEFAULT_REGION}/${BUCKET_NAME}
 
+
+
 # mount it
 # https://www.rath.org/s3ql-docs/man/mount.html
 # TODO: disable RAM cache
-sudo mount.s3ql s3://${AWS_DEFAULT_REGION}/${BUCKET_NAME} ${TEST_DIR} \
+mount.s3ql s3://${AWS_DEFAULT_REGION}/${BUCKET_NAME} ${TEST_DIR} \
     --cachedir ${CACHE_DIR} \
     --log ${LOG_DIR}/log \
     --authfile ${HOME}/.s3ql/authinfo2 \
-    --cachesize $(( ${DISK_CACHE_SIZE_MB} * 1024 )) \
-    --allow-other
+    --cachesize $(( ${DISK_CACHE_SIZE_MB} * 1024 ))
 
 CheckFuseMount s3ql
 RunDiskTest ${TEST_DIR}  

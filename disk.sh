@@ -91,7 +91,7 @@ function RunDiskTest() {
         rm -Rf $TEST_DIR/* 
 
         RunTarTest
-        m -Rf $TEST_DIR/* 
+        rm -Rf $TEST_DIR/* 
 
     fi
 
