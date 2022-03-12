@@ -89,10 +89,9 @@ function TerminateFuseBenchmark() {
 
     # just to be extra sure the data is removed from cloud
     # ths can fail
-    # sudo rm -Rf   ${TEST_DIR}/*
-
+    sudo rm -Rf   ${TEST_DIR}/* || true
     sudo umount   ${TEST_DIR}
-    rm -Rf        ${BASE_DIR}
+    sudo rm -Rf   ${BASE_DIR}
 
     # check there is no mount
     mount
