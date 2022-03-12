@@ -18,6 +18,9 @@ wget -q https://juicefs.com/static/juicefs
 chmod +x juicefs 
 sudo mv juicefs /usr/bin
 
+# create the bucket if necessary
+aws s3 mb s3://${BUCKET_NAME} --region ${BUCKET_REGION} 
+
 juicefs auth \
     ${BUCKET_NAME} \
     --token ${JUICE_TOKEN} \
