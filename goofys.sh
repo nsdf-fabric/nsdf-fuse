@@ -6,11 +6,14 @@ source ./disk.sh
 InitFuseBenchmark goofys
 
 # install goofys
-wget https://github.com/kahing/goofys/releases/latest/download/goofys
-chmod a+x goofys
-sudo mv goofys /usr/bin/
+if [[ ! -f /usr/bin/goofys ]] ; then
+    wget https://github.com/kahing/goofys/releases/latest/download/goofys
+    chmod a+x goofys
+    sudo mv goofys /usr/bin/
+fi
 
 # if you want to enable disk caching
+# since I am having problems installing it I am just disabling
 if [[ "0" == "1" ]] ; then
     sudo apt install -y cargo
     cargo install catfs
@@ -21,8 +24,11 @@ fi
 # create the bucket if necessary
 aws s3 mb s3://${BUCKET_NAME} --region ${BUCKET_REGION} 
 
-# logs goes to syslog
-goofys --region ${BUCKET_REGION} ${BUCKET_NAME} ${TEST_DIR}
+# logs goes to syslog (==there is no way to redirect it?)
+goofys \
+    --region ${BUCKET_REGION} \
+    ${BUCKET_NAME} \
+    ${TEST_DIR}
 
 CheckFuseMount goofys
 RunDiskTest ${TEST_DIR}  

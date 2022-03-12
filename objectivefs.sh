@@ -19,7 +19,7 @@ SudoWriteOneLineFile /etc/objectivefs.env/AWS_DEFAULT_REGION      ""
 SudoWriteOneLineFile /etc/objectivefs.env/OBJECTIVEFS_LICENSE  ${OBJECTIVEFS_LICENSE}
 sudo chmod ug+rwX,a-rwX -R /etc/objectivefs.env
 
-sudo cat << EOF > ${HOME}/ofs_create_bucket.sh
+sudo cat << EOF > ofs_create_bucket.sh
 #!/usr/bin/expect -f
 set timeout -1
 spawn mount.objectivefs create -l ${BUCKET_REGION} ${BUCKET_NAME}
@@ -31,8 +31,8 @@ send -- "${OBJECTIVEFS_LICENSE}\r"
 expect eof
 EOF
 
-chmod a+x ${HOME}/ofs_create_bucket.sh
-sudo ${HOME}/ofs_create_bucket.sh
+chmod a+x ofs_create_bucket.sh
+sudo ofs_create_bucket.sh
 
 # see https://objectivefs.com/howto/performance-amazon-efs-vs-objectivefs-large-files
 # cannot change log location
@@ -46,4 +46,4 @@ CheckFuseMount objectivefs
 RunDiskTest ${TEST_DIR}  
 TerminateFuseBenchmark objectivefs
 
-rm -f ${HOME}/ofs_create_bucket.sh
+rm -f ofs_create_bucket.sh

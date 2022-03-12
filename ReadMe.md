@@ -26,26 +26,13 @@ cd nsdf-fuse-test
 #       ${HOME}/mount/${BUCKET_NAME} where BUCKET_NAME is for example nsdf-fuse-test-s3fs
 
 
-# very very good
-./juicefs.sh
-
-# very very good
-./goofys.sh
-
-# slow
-./geesefs.sh
-
-# slow 
-./objectivefs.sh
-
-# slow (very interesting for POSIX compatibility but cannot get more than 100MiB/sec)
-./s3backer.sh
-
-# slow
-./s3fs.sh
-
-# slow and not concurrent mount see http://www.rath.org/s3ql-docs/faq.html
-./s3ql.sh
+./juicefs.sh      # fast
+./goofys.sh       # fast
+./geesefs.sh      # slow
+./objectivefs.sh  # slow 
+./s3backer.sh     # slow (POSIX compatibility via regular linux file system)
+./s3fs.sh         # slow
+./s3ql.sh         # slow 
 ```
 
 
