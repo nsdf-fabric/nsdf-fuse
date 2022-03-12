@@ -19,7 +19,7 @@ SudoWriteOneLineFile /etc/objectivefs.env/AWS_DEFAULT_REGION      ""
 SudoWriteOneLineFile /etc/objectivefs.env/OBJECTIVEFS_LICENSE  ${OBJECTIVEFS_LICENSE}
 sudo chmod ug+rwX,a-rwX -R /etc/objectivefs.env
 
-sudo cat << EOF > ofs_create_bucket.sh
+sudo cat << EOF > /tmp/ofs_create_bucket.sh
 #!/usr/bin/expect -f
 set timeout -1
 spawn mount.objectivefs create -l ${BUCKET_REGION} ${BUCKET_NAME}
