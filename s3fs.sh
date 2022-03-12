@@ -1,0 +1,43 @@
+#!/bin/bash
+
+source $(dirname $0)/utils.sh
+InitFuseBenchmark s3fs
+
+# update the system
+sudo apt update
+sudo apt install -y nload fio expect python3 python3-pip fuse libfuse-dev awscli
+
+# install s3fs
+sudo apt install -y s3fs 
+
+# automatic authorization
+echo ${ACCESS_KEY}:${SECRET_ACCESS_KEY} > ${HOME}/.s3fs
+chmod 600 ${HOME}/.s3fs
+
+# see http://manpages.ubuntu.com/manpages/bionic/man1/s3fs.1.html
+
+# create the bucket if necessary
+aws s3 mb s3://${BUCKET_NAME} --region ${BUCKET_REGION} 
+
+# see https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-s3fs
+# TODO: there is no way to limit disk cache?
+# NOTE: -o kernel_cache (DONT' WANT RAM CACHE)
+sudo s3fs \
+    ${BUCKET_NAME} \
+    ${TEST_DIR} \
+    -o passwd_file=${HOME}/.s3fs \
+    -o endpoint=${BUCKET_REGION} \
+    -o use_cache=${CACHE_DIR} \
+    -o cipher_suites=AESGCM \
+    -o max_background=1000 \
+    -o max_stat_cache_size=100000 \
+    -o multipart_size=52 \
+    -o parallel_count=30 \
+    -o multireq_max=30 \
+    -o allow_other 
+
+CheckFuseMount s3fs
+RunDiskTest ${TEST_DIR}  
+TerminateFuseBenchmark s3fs
+
+rm -f ${HOME}/.s3fs
