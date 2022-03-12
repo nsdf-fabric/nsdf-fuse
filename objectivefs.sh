@@ -32,7 +32,7 @@ expect eof
 EOF
 
 chmod a+x ofs_create_bucket.sh
-sudo ofs_create_bucket.sh
+sudo ./ofs_create_bucket.sh
 
 # see https://objectivefs.com/howto/performance-amazon-efs-vs-objectivefs-large-files
 # cannot change log location
