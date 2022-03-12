@@ -49,11 +49,10 @@ function InitFuseBenchmark() {
     echo "LOG_DIR:            ${LOG_DIR}"
 
     # create and share the directory
-    sudo mkdir     -p ${BASE_DIR}  || true
-    sudo mkdir     -p ${TEST_DIR}  || true
-    sudo mkdir     -p ${CACHE_DIR} || true
-    sudo mkdir     -p ${LOG_DIR}   || true
-    sudo chmod 777 -R ${BASE_DIR} 
+    mkdir     -p ${BASE_DIR}  || true
+    mkdir     -p ${TEST_DIR}  || true
+    mkdir     -p ${CACHE_DIR} || true
+    mkdir     -p ${LOG_DIR}   || true
 
     echo "InitFuseBenchmark ${NAME} done"
 }
