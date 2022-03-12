@@ -2,6 +2,7 @@
 set -e # exit when any command fails
 
 source ./utils.sh
+source ./disk.sh
 InitFuseBenchmark s3ql
 
 # https://www.brightbox.com/docs/guides/s3ql/

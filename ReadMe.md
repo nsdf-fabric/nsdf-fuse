@@ -30,7 +30,7 @@ cd nsdf-fuse-test
 ./juicefs.sh
 
 # very very good
-.gfoofys.sh
+./goofys.sh
 
 # slow
 ./geesefs.sh

@@ -2,6 +2,7 @@
 set -e # exit when any command fails
 
 source ./utils.sh
+source ./disk.sh
 InitFuseBenchmark s3backer
 
 # install s3 backer
