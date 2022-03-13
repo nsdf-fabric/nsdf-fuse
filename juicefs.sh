@@ -43,8 +43,7 @@ function FuseUp() {
     mount | grep ${TEST_DIR} # to make sure it's mounted
 }
 
-RunDiskTest ${TEST_DIR}    
-
+RunDiskTest ${TEST_DIR}
 aws s3 rb --force s3://juicefs-${BUCKET_NAME}  
 rm -Rf ${BASE_DIR}
 

@@ -53,23 +53,23 @@ function RunDiskTest() {
     # one sequential (tot-storage=filesize*numjobs=64G fuse-activity=size=64G)
     FuseUp && RunFioWriteTest --name=one-seq-write   --rw=write --bs=4M --filesize=64G --numjobs=1     --size=64G && FuseDown
     FuseUp && RunFioReadTest  --name=one-seq-read    --rw=read  --bs=4M --filesize=64G --numjobs=1     --size=64G && FuseDown
-    FuseUp && rm -Rf $TEST_DIR/* && FuseDown
+    FuseUp && rm -Rf ${TEST_DIR}/* && FuseDown
 
     # multi sequential (tot-storage=filesize*numjobs=64G fuse-activity=size=64G)
     FuseUp && RunFioWriteTest --name=multi-seq-write --rw=write --bs=4M  --filesize=1G  --numjobs=64   --size=64G && FuseDown
     FuseUp && RunFioReadTest  --name=multi-seq-read  --rw=read  --bs=4M  --filesize=1G  --numjobs=64   --size=64G && FuseDown
-    FuseUp && rm -Rf $TEST_DIR/* && FuseDown
+    FuseUp && rm -Rf ${TEST_DIR}/* && FuseDown
 
     # rand test (tot-storage=filesize*numjobs=64G fuse-activity=numjobs*size=8G) (WEIRD: rand test use --size with a different meaning)
     FuseUp && RunFioWriteTest --name=rand-write --rw=randwrite  --bs=64k  --filesize=2G --numjobs=32   --size=256M && FuseDown
     FuseUp && RunFioReadTest  --name=rand-read  --rw=randread   --bs=64k  --filesize=2G --numjobs=32   --size=256M && FuseDown
-    FuseUp && rm -Rf $TEST_DIR/* && FuseDown
+    FuseUp && rm -Rf ${TEST_DIR}/* && FuseDown
 
     # lot of writing small files (can take several minutes)
     echo "# ///////////////////////////////////////////////////////////"    
     echo "Start test [tar-xzf]..." 
     wget  https://curl.se/download/curl-7.82.0.tar.gz 
-    FuseUp && time tar xzf curl-7.82.0.tar.gz 1>/dev/null -C ${TEST_DIR} && FuseDown
+    FuseUp && time -p tar xzf curl-7.82.0.tar.gz 1>/dev/null -C ${TEST_DIR} && FuseDown
     echo "Test [tar-xzf] done"
     rm -f curl-7.82.0.tar.gz
     echo
@@ -77,11 +77,11 @@ function RunDiskTest() {
     # lot of removal of small files
     echo "# ///////////////////////////////////////////////////////////"    
     echo "Start test [rm-file]..." 
-    FuseUp && time rm -Rf $TEST_DIR/* && FuseDown
+    FuseUp && time -p rm -Rf ${TEST_DIR}/* && FuseDown
     echo "Test [rm-file] done." 
     echo
 
-    FuseUp && rm -Rf $TEST_DIR/* && FuseDown
+    FuseUp && rm -Rf ${TEST_DIR}/* && FuseDown
 
     echo "RunDiskTest TEST_DIR=${TEST_DIR} done"
 }

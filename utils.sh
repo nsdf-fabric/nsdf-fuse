@@ -72,4 +72,3 @@ function FuseDown() {
 function SudoWriteOneLineFile() {
     sudo bash -c "echo $2 > $1"
 }
-
