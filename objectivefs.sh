@@ -35,7 +35,7 @@ EOF
     sudo chmod 700 create_bucket.sh
     sudo ./create_bucket.sh
     rm create_bucket.sh
-    sudo chmod a+rwX -R ${TEST_DIR}/*
+    sudo chmod a+rwX -R ${TEST_DIR}
 }
 
 # /////////////////////////////////////////////////////////////////
@@ -54,7 +54,7 @@ function FuseUp() {
         ${TEST_DIR}
 
     sudo mount | grep ${TEST_DIR}
-    sudo chmod a+rwX -R ${BASE_DIR}/* 
+    sudo chmod a+rwX -R ${TEST_DIR}
 }
 
 
