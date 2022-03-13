@@ -2,8 +2,6 @@
 set -e # exit when any command fails
 source ./fuse_test.sh
 
-CHECK OBJECTIVEFS_LICENSE
-
 # /////////////////////////////////////////////////////////////////
 function InstallObjectiveFs() {
     wget -q https://objectivefs.com/user/download/asn7gu3nd/objectivefs_6.9.1_amd64.deb
@@ -13,29 +11,30 @@ function InstallObjectiveFs() {
 # /////////////////////////////////////////////////////////////////
 function CreateCredentials() {
     sudo mkdir -p /etc/objectivefs.env
-    sudo bash -c "echo ${OBJECTIVEFS_LICENSE}   > /etc/objectivefs.env/OBJECTIVEFS_LICENSE     "
-    sudo bash -c "echo ${AWS_ACCESS_KEY_ID}     > /etc/objectivefs.env/AWS_ACCESS_KEY_ID "
-    sudo bash -c "echo ${AWS_SECRET_ACCESS_KEY} > /etc/objectivefs.env/AWS_SECRET_ACCESS_KEY"
-    sudo bash -c "echo ''                       > /etc/objectivefs.env/AWS_DEFAULT_REGION"
-    sudo bash -c "echo ${OBJECTIVEFS_LICENSE}   > /etc/objectivefs.env/OBJECTIVEFS_LICENSE  "
-    sudo chmod ug+rwX,a-rwX -R /etc/objectivefs.env
+    sudo rm -Rf /etc/objectivefs.env/*
+    sudo bash -c "echo ${AWS_ACCESS_KEY_ID}      > /etc/objectivefs.env/AWS_ACCESS_KEY_ID"
+    sudo bash -c "echo ${AWS_SECRET_ACCESS_KEY}  > /etc/objectivefs.env/AWS_SECRET_ACCESS_KEY"
+    sudo bash -c "echo ${AWS_DEFAULT_REGION}     > /etc/objectivefs.env/AWS_DEFAULT_REGION"
+    sudo bash -c "echo ${OBJECTIVEFS_LICENSE}    > /etc/objectivefs.env/OBJECTIVEFS_LICENSE"
+    sudo bash -c "echo ${OBJECTIVEFS_PASSPHRASE} > /etc/objectivefs.env/OBJECTIVEFS_PASSPHRASE"
+    sudo chmod 600 /etc/objectivefs.env/*
 }
 
 # /////////////////////////////////////////////////////////////////
 function CreateBucket() {
-    cat << EOF > ~/ofs_create_bucket.sh
+    cat << EOF > create_bucket.sh
 #!/usr/bin/expect -f
 set timeout -1
 spawn mount.objectivefs create -l ${AWS_DEFAULT_REGION} ${BUCKET_NAME}
 match_max 100000
 expect -exact "for s3://${BUCKET_NAME}): "
-send -- "${OBJECTIVEFS_LICENSE}\r"
-expect -exact "for s3://${BUCKET_NAME}): "
-send -- "${OBJECTIVEFS_LICENSE}\r"
+send -- "${OBJECTIVEFS_PASSPHRASE}\r"
 expect eof
 EOF
-    chmod a+x ~/ofs_create_bucket.sh
-    sudo ~/ofs_create_bucket.sh
+
+    sudo chmod 700 create_bucket.sh
+    sudo ./create_bucket.sh
+    rm create_bucket.sh
 }
 
 # /////////////////////////////////////////////////////////////////
@@ -47,12 +46,37 @@ function FuseUp() {
     export  DISKCACHE_PATH=${CACHE_DIR}
     export  CACHESIZE=${RAM_CACHE_SIZE_MB}
 
-    sudo mount.objectivefs -o mt s3://${BUCKET_NAME} ${TEST_DIR}
+    # see AWS_DEFAULT_REGION 
+    sudo mount.objectivefs \
+        -o mt \
+        s3://${BUCKET_NAME} \
+        ${TEST_DIR}
+
     sudo mount | grep ${TEST_DIR}
-    sudo chmod 777 -R ${BASE_DIR} 
+    sudo chmod a+rwX -R ${BASE_DIR} 
 }
 
+# ///////////////////////////////////////////////////////////
+# overriding because I need to use sudo
+function FuseDown() {
+
+    echo "FuseDown..."
+
+    CHECK TEST_DIR
+    CHECK CACHE_DIR
+    CHECK TEST_DIR
+    # unmount but keeping the remote data
+    sudo umount ${TEST_DIR}    
+    rm -Rf ${CACHE_DIR}/* 
+    rm -Rf ${TEST_DIR}/*
+
+    echo "FuseDown done"
+}
+
+
 BUCKET_NAME=nsdf-fuse-objectivefs
+CHECK OBJECTIVEFS_LICENSE
+OBJECTIVEFS_PASSPHRASE=${OBJECTIVEFS_LICENSE}
 InitFuseBenchmark 
 InstallObjectiveFs
 CreateCredentials
@@ -60,4 +84,4 @@ CreateBucket
 RunFuseTest
 RemoveBucket
 TerminateFuseBenchmark 
-rm -f /tmp/ofs_create_bucket.sh
+sudo rm -Rf /etc/objectivefs.env/*
