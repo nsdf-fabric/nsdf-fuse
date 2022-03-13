@@ -40,10 +40,12 @@ export  DISKCACHE_SIZE=${DISK_CACHE_SIZE_MB}M
 export  DISKCACHE_PATH=${CACHE_DIR}
 export  CACHESIZE=${RAM_CACHE_SIZE_MB}
 
-sudo mount.objectivefs -o mt s3://${BUCKET_NAME} ${TEST_DIR}
-sudo chmod 777 -R ${BASE_DIR} 
+function FuseUp() {
+    sudo mount.objectivefs -o mt s3://${BUCKET_NAME} ${TEST_DIR}
+    sudo mount | grep ${TEST_DIR}
+    sudo chmod 777 -R ${BASE_DIR} 
+}
 
-CheckFuseMount objectivefs
 RunDiskTest ${TEST_DIR}  
 TerminateFuseBenchmark objectivefs
 

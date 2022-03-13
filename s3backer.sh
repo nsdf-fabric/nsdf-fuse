@@ -22,34 +22,36 @@ mkdir -p ${S3_BACKEND_DIR}
 # create the bucket if necessary
 aws s3 mb s3://${BUCKET_NAME} --region ${AWS_DEFAULT_REGION} 
 
-# Explanation:
-#   Linux loop back mount
-#   s3backer <---> remote S3 storage
-sudo s3backer \
-    --accessId=${AWS_ACCESS_KEY_ID} \
-    --accessKey=${AWS_SECRET_ACCESS_KEY} \
-    --blockCacheFile=${BLOCK_CACHE_FILE} \
-    --blockSize=${BLOCK_SIZE_MB}M \
-    --size=${OVERALL_SIZE} \
-    --region=${AWS_DEFAULT_REGION} \
-    --blockCacheSize=${NUM_BLOCK_TO_CACHE} \
-    --blockCacheThreads=${NUM_THREADS} \
-    -o default_permissions,allow_other \
-    -o uid=$UID \
-    ${BUCKET_NAME} \
-    ${S3_BACKEND_DIR}  
+function FuseUp(){
 
-mkfs.ext4 -E nodiscard -F ${S3_BACKEND_DIR}/file
-sudo mount \
-    -o loop \
-    -o discard \
-    -o default_permissions,allow_other \
-    -o uid=$UID \    
-    ${S3_BACKEND_DIR}/file \
-    ${TEST_DIR}
+    # Explanation:
+    #   Linux loop back mount
+    #   s3backer <---> remote S3 storage
+    s3backer \
+        --accessId=${AWS_ACCESS_KEY_ID} \
+        --accessKey=${AWS_SECRET_ACCESS_KEY} \
+        --blockCacheFile=${BLOCK_CACHE_FILE} \
+        --blockSize=${BLOCK_SIZE_MB}M \
+        --size=${OVERALL_SIZE} \
+        --region=${AWS_DEFAULT_REGION} \
+        --blockCacheSize=${NUM_BLOCK_TO_CACHE} \
+        --blockCacheThreads=${NUM_THREADS} \
+        -o default_permissions,allow_other \
+        -o uid=$UID \
+        ${BUCKET_NAME} \
+        ${S3_BACKEND_DIR}  
 
-# sudo chmod 777 -R ${BASE_DIR} || true
+    mkfs.ext4 -E nodiscard -F ${S3_BACKEND_DIR}/file
 
-CheckFuseMount s3backer
+    mount \
+        -o loop \
+        -o discard \
+        -o default_permissions,allow_other \
+        -o uid=$UID \
+        ${S3_BACKEND_DIR}/file \
+        ${TEST_DIR}
+    mount | grep ${TEST_DIR}
+}
+
 RunDiskTest ${TEST_DIR}  
 TerminateFuseBenchmark s3backer

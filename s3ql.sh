@@ -32,31 +32,29 @@ chmod 600 ${HOME}/.s3ql/authinfo2
 # create the bucket if necessary
 aws s3 mb s3://${BUCKET_NAME} --region ${AWS_DEFAULT_REGION} 
 
-sudo chmod -R a+rwX ${BASE_DIR}
-
 # create the bucket
 # https://www.rath.org/s3ql-docs/man/mkfs.html
-sudo mkfs.s3ql  \
+mkfs.s3ql  \
     --cachedir ${CACHE_DIR} \
     --log ${LOG_DIR}/log \
     --authfile ${HOME}/.s3ql/authinfo2 \
     --plain \
     s3://${AWS_DEFAULT_REGION}/${BUCKET_NAME}
 
+function FuseUp() {
 
+    # mount it
+    # https://www.rath.org/s3ql-docs/man/mount.html
+    # TODO: disable RAM cache
+    mount.s3ql s3://${AWS_DEFAULT_REGION}/${BUCKET_NAME} ${TEST_DIR} \
+        --cachedir ${CACHE_DIR} \
+        --log ${LOG_DIR}/log \
+        --authfile ${HOME}/.s3ql/authinfo2 \
+        --cachesize $(( ${DISK_CACHE_SIZE_MB} * 1024 ))
+    mount | grep ${TEST_DIR}
+}
 
-# mount it
-# https://www.rath.org/s3ql-docs/man/mount.html
-# TODO: disable RAM cache
-mount.s3ql s3://${AWS_DEFAULT_REGION}/${BUCKET_NAME} ${TEST_DIR} \
-    --cachedir ${CACHE_DIR} \
-    --log ${LOG_DIR}/log \
-    --authfile ${HOME}/.s3ql/authinfo2 \
-    --cachesize $(( ${DISK_CACHE_SIZE_MB} * 1024 ))
-
-CheckFuseMount s3ql
 RunDiskTest ${TEST_DIR}  
 TerminateFuseBenchmark s3ql
-
 rm -f ${HOME}/.s3ql/authinfo2
 

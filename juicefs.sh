@@ -14,19 +14,6 @@ echo "///////////////////////////////////////////////////////////////////////"
 
 export JUICE_TOKEN=${JUICE_TOKEN:-XXXXX}
 
-
-function FuseUp() {
-    # TODO: make sure juicefs is not using RAM cache
-    juicefs mount \
-        ${BUCKET_NAME} \
-        ${TEST_DIR} \
-        --log=${LOG_DIR}/log.log \
-        --max-uploads=150 \
-        --cache-dir=${CACHE_DIR} \
-        --cache-size=${DISK_CACHE_SIZE_MB}  
-    mount | grep ${TEST_DIR} # to make sure it's mounted
-}
-
 # install juicefs
 if [[ ! -f /usr/bin/juicefs ]] ; then
     wget -q https://juicefs.com/static/juicefs
@@ -43,9 +30,19 @@ juicefs auth \
     --accesskey ${AWS_ACCESS_KEY_ID} \
     --secretkey ${AWS_SECRET_ACCESS_KEY} 
 
+function FuseUp() {
+    # TODO: make sure juicefs is not using RAM cache
+    juicefs mount \
+        ${BUCKET_NAME} \
+        ${TEST_DIR} \
+        --log=${LOG_DIR}/log.log \
+        --max-uploads=150 \
+        --cache-dir=${CACHE_DIR} \
+        --cache-size=${DISK_CACHE_SIZE_MB}  
+    mount | grep ${TEST_DIR} # to make sure it's mounted
+}
 
 RunDiskTest ${TEST_DIR}    
-
 TerminateFuseBenchmark juicefs
 
 

@@ -23,19 +23,21 @@ chmod 600 ./rclone.conf
 # create the bucket if necessary
 aws s3 mb s3://${BUCKET_NAME} --region ${AWS_DEFAULT_REGION} 
 
-rclone mount \
-  rclone-s3:${BUCKET_NAME} \
-  ${TEST_DIR} \
-  --config ./rclone.conf \
-  --vfs-cache-mode writes \
-  --use-server-modtime \
-  --cache-dir ${CACHE_DIR} \
-  --vfs-cache-mode minimal \
-  --daemon
 
-CheckFuseMount rclone
+function FuseUp() {
+  rclone mount \
+    rclone-s3:${BUCKET_NAME} \
+    ${TEST_DIR} \
+    --config ./rclone.conf \
+    --vfs-cache-mode writes \
+    --use-server-modtime \
+    --cache-dir ${CACHE_DIR} \
+    --vfs-cache-mode minimal \
+    --daemon
+  mount | grep ${TEST_DIR}
+}
+
 RunDiskTest ${TEST_DIR}    
 TerminateFuseBenchmark rclone
-
 rm -f ./rclone.conf
 

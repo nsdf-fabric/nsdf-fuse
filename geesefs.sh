@@ -23,20 +23,22 @@ aws_access_key_id=${AWS_ACCESS_KEY_ID}
 aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}
 EOF
 
-# see https://github.com/yandex-cloud/geesefs
-# --debug_s3 --debug_fuse \
-geesefs \
-    --cache ${CACHE_DIR} \
-    --no-checksum \
-    --memory-limit ${DISK_CACHE_SIZE_MB} \
-    --max-flushers 32 \
-    --max-parallel-parts 32 \
-    --part-sizes 25 \
-    --log-file ${LOG_DIR}/log.txt \
-    --endpoint https://s3.${AWS_DEFAULT_REGION}.amazonaws.com \
-    ${BUCKET_NAME} ${TEST_DIR} 
+function FuseUp() {
+    # see https://github.com/yandex-cloud/geesefs
+    # --debug_s3 --debug_fuse \
+    geesefs \
+        --cache ${CACHE_DIR} \
+        --no-checksum \
+        --memory-limit ${DISK_CACHE_SIZE_MB} \
+        --max-flushers 32 \
+        --max-parallel-parts 32 \
+        --part-sizes 25 \
+        --log-file ${LOG_DIR}/log.txt \
+        --endpoint https://s3.${AWS_DEFAULT_REGION}.amazonaws.com \
+        ${BUCKET_NAME} ${TEST_DIR}
+    mount | grep ${TEST_DIR}
+}
 
-CheckFuseMount geesefs
 RunDiskTest ${TEST_DIR}  
 TerminateFuseBenchmark geesefs
 

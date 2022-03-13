@@ -24,12 +24,11 @@ fi
 # create the bucket if necessary
 aws s3 mb s3://${BUCKET_NAME} --region ${AWS_DEFAULT_REGION} 
 
-# logs goes to syslog (==there is no way to redirect it?)
-goofys \
-    --region ${AWS_DEFAULT_REGION} \
-    ${BUCKET_NAME} \
-    ${TEST_DIR}
+function FuseUp() {
+    # logs goes to syslog (==there is no way to redirect it?)
+    goofys --region ${AWS_DEFAULT_REGION} ${BUCKET_NAME} ${TEST_DIR}
+    mount | grep ${TEST_DIR}
+}
 
-CheckFuseMount goofys
 RunDiskTest ${TEST_DIR}  
 TerminateFuseBenchmark goofys
