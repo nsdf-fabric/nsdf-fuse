@@ -43,7 +43,7 @@ BUCKET_NAME=nsdf-fuse-geesefs
 InitFuseBenchmark 
 InstallGeeseFs
 CreateBucket 
-CreateCredentials
+# CreateCredentials
 RunFuseTest 
 RemoveBucket 
 TerminateFuseBenchmark 
