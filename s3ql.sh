@@ -56,6 +56,7 @@ function FormatBucket() {
     mkfs.s3ql \
         --cachedir ${CACHE_DIR} \
         --log ${LOG_DIR}/log \
+        --plain \
         s3://${AWS_DEFAULT_REGION}/${BUCKET_NAME}
 
     echo "FormatBucket (done)..."
