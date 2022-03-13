@@ -8,10 +8,7 @@ function InstallS3Backer() {
     sudo sh -c 'echo user_allow_other >> /etc/fuse.conf'
 }
 
-
-# /////////////////////////////////////////////////////////////////
-function FuseUp(){
-    echo "FuseUp (s3backer)..."
+function MountBackend() {
 
     # create and share the directory
     mkdir     -p ${BASE_DIR}  || true
@@ -42,28 +39,50 @@ function FuseUp(){
              ${CACHE_DIR}/backend  
 
     mount | grep ${CACHE_DIR}
+}
 
-    if [[ ! -f ${BASE_DIR}/s3_backer_backend_formatted ]] ; then
-        echo "Formatting s3 backend..."
-        mkfs.ext4 -E nodiscard -F ${CACHE_DIR}/backend/file
-        touch ${BASE_DIR}/s3_backer_backend_formatted
-        echo "s3 backend formatted"
-    fi
-
+# /////////////////////////////////////////////////////////////////
+function MountLoopBack() {
     # need sudo here
     # Controls whether ext4 should issue discard/TRIM commands to the underlying block device 
     sudo mount -o loop -o discard ${CACHE_DIR}/backend/file ${TEST_DIR}
     mount | grep ${TEST_DIR}
-    sudo chmod a+rwX -R ${TEST_DIR}
+    sudo chmod a+rwX -R ${TEST_DIR}    
+}
 
+# /////////////////////////////////////////////////////////////////
+fuction FormatBackend() {
+    echo "Formatting s3 backend..."
+    MountBackend
+    mkfs.ext4 -E nodiscard -F ${CACHE_DIR}/backend/file
+    UmountBackend
+    echo "s3 backend formatted"
+}
+
+
+# /////////////////////////////////////////////////////////////////
+function FuseUp(){
+    echo "FuseUp (s3backer)..."
+    MountBackend
+    MountLoopBack
     echo "FuseUp (s3backer) done"
+}
+
+# /////////////////////////////////////////////////////////////////
+function UMountLoopback() {
+    sudo umount ${TEST_DIR}
+}
+
+# /////////////////////////////////////////////////////////////////
+function UMountBackend() {
+    umount ${CACHE_DIR}/backend    
 }
 
 # /////////////////////////////////////////////////////////////////
 function FuseDown() {
     echo "FuseDown (s3backer)..."
-    sudo umount ${TEST_DIR}
-    umount ${CACHE_DIR}/backend
+    UMountLoopback
+    UMountBackend
     rm -Rf ${BASE_DIR}
     echo "FuseDown (s3backer) done"
 }
@@ -72,6 +91,7 @@ BUCKET_NAME=nsdf-fuse-s3backer
 InitFuseTest 
 InstallS3Backer
 CreateBucket
+FormatBackend
 RunFuseTest  
 RemoveBucket 
 TerminateFuseTest 
