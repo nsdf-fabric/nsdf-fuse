@@ -37,6 +37,6 @@ EnableCaching
 CreateBucket 
 RunFuseTest 
 RemoveBucket 
-TerminatTerminateFuseBenchmarkeFuseBencmark
+TerminateFuseBenchmark
 
 
