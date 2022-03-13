@@ -51,8 +51,7 @@ function FormatBucket() {
     mkfs.s3ql \
         s3://${AWS_DEFAULT_REGION}/${BUCKET_NAME} \
         --cachedir ${CACHE_DIR} \
-        --log ${LOG_DIR}/log \
-        --cachesize $(( ${DISK_CACHE_SIZE_MB} * 1024 ))
+        --log ${LOG_DIR}/log 
 
     echo "FormatBucket (done)..."
 }
@@ -92,6 +91,7 @@ function FuseDown() {
     echo "FuseDown (s3ql) done"
 }
 
+# problem, cannot run in non-interactive since it asks for a password
 BUCKET_NAME=nsdf-fuse-s3ql
 InitFuseTest
 InstallS3QL
