@@ -35,6 +35,12 @@ EOF
 # /////////////////////////////////////////////////////////////////
 function FuseUp() {
 
+    # create and share the directory
+    mkdir     -p ${BASE_DIR}  || true
+    mkdir     -p ${TEST_DIR}  || true
+    mkdir     -p ${CACHE_DIR} || true
+    mkdir     -p ${LOG_DIR}   || true    
+
     # create the bucket
     # https://www.rath.org/s3ql-docs/man/mkfs.html
     mkfs.s3ql  \
@@ -53,6 +59,19 @@ function FuseUp() {
         --authfile ${HOME}/.s3ql/authinfo2 \
         --cachesize $(( ${DISK_CACHE_SIZE_MB} * 1024 ))
     mount | grep ${TEST_DIR}
+}
+
+
+# ///////////////////////////////////////////////////////////
+function FuseDown() {
+    # override since i need sudo
+    echo "FuseDown (objectivefs)..."
+    CHECK TEST_DIR
+    CHECK CACHE_DIR
+    CHECK TEST_DIR
+    sudo umount ${TEST_DIR}
+    rm -Rf ${BASE_DIR}
+    echo "FuseDown (objectivefs) done"
 }
 
 BUCKET_NAME=nsdf-fuse-s3ql

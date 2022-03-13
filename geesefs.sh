@@ -25,6 +25,13 @@ EOF
 
 # /////////////////////////////////////////////////////////////////
 function FuseUp() {
+
+    # create and share the directory
+    mkdir     -p ${BASE_DIR}  || true
+    mkdir     -p ${TEST_DIR}  || true
+    mkdir     -p ${CACHE_DIR} || true
+    mkdir     -p ${LOG_DIR}   || true
+
     # see https://github.com/yandex-cloud/geesefs
     # --debug_s3 --debug_fuse \
     ${HOME}/bin/geesefs \
@@ -39,6 +46,16 @@ function FuseUp() {
         ${BUCKET_NAME} ${TEST_DIR} || true # the command does not return 0 (weird)
     echo "Check the following line is showing the mount"
     mount | grep ${TEST_DIR}
+}
+
+# ///////////////////////////////////////////////////////////
+function FuseDown() {
+    echo "FuseDown..."
+    CHECK TEST_DIR
+    CHECK CACHE_DIR
+    umount ${TEST_DIR} 
+    rm -Rf ${BASE_DIR}
+    echo "FuseDown done"
 }
 
 BUCKET_NAME=nsdf-fuse-geesefs

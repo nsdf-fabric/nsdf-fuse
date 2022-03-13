@@ -13,6 +13,12 @@ function InstallS3Backer() {
 function FuseUp(){
     echo "FuseUp (s3backer)..."
 
+    # create and share the directory
+    mkdir     -p ${BASE_DIR}  || true
+    mkdir     -p ${TEST_DIR}  || true
+    mkdir     -p ${CACHE_DIR} || true
+    mkdir     -p ${LOG_DIR}   || true
+
     # Explanation:
     #   Linux loop back mount
     #   s3backer <---> remote S3 storage
@@ -44,6 +50,7 @@ function FuseUp(){
         echo "s3 backend formatted"
     fi
 
+    # need sudo here
     # Controls whether ext4 should issue discard/TRIM commands to the underlying block device 
     sudo mount -o loop -o discard ${CACHE_DIR}/backend/file ${TEST_DIR}
     sudo mount | grep ${TEST_DIR}
@@ -59,9 +66,8 @@ function FuseDown() {
     CHECK TEST_DIR
     CHECK CACHE_DIR
     sudo umount ${TEST_DIR}
-    umount ${CACHE_DIR}/backend
-    rm -Rf ${CACHE_DIR}/* 
-    rm -Rf ${TEST_DIR}/*
+    sudo umount ${CACHE_DIR}/backend
+    rm -Rf ${BASE_DIR}
     echo "FuseDown (s3backer) done"
 }
 

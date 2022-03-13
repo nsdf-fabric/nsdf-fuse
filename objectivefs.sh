@@ -40,6 +40,13 @@ EOF
 
 # /////////////////////////////////////////////////////////////////
 function FuseUp() {
+
+    # create and share the directory
+    mkdir     -p ${BASE_DIR}  || true
+    mkdir     -p ${TEST_DIR}  || true
+    mkdir     -p ${CACHE_DIR} || true
+    mkdir     -p ${LOG_DIR}   || true
+
     # see https://objectivefs.com/howto/performance-amazon-efs-vs-objectivefs-large-files
     # cannot change log location ?
     export  DISKCACHE_SIZE=${DISK_CACHE_SIZE_MB}M
@@ -61,8 +68,7 @@ function FuseDown() {
     CHECK CACHE_DIR
     CHECK TEST_DIR
     sudo umount ${TEST_DIR}
-    sudo rm -Rf ${CACHE_DIR}/* 
-    sudo rm -Rf ${TEST_DIR}/*
+    rm -Rf ${BASE_DIR}
     echo "FuseDown (objectivefs) done"
 }
 

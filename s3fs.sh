@@ -15,6 +15,13 @@ function CreateCredentials() {
 
 # /////////////////////////////////////////////////////////////////
 function FuseUp() {
+
+    # create and share the directory
+    mkdir     -p ${BASE_DIR}  || true
+    mkdir     -p ${TEST_DIR}  || true
+    mkdir     -p ${CACHE_DIR} || true
+    mkdir     -p ${LOG_DIR}   || true
+
     # see http://manpages.ubuntu.com/manpages/bionic/man1/s3fs.1.html
     # see https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-s3fs
     # TODO: there is no way to limit disk cache?
@@ -33,6 +40,19 @@ function FuseUp() {
         -o multireq_max=30 \
         -o allow_other 
     mount | grep ${TEST_DIR}  
+}
+
+
+# ///////////////////////////////////////////////////////////
+function FuseDown() {
+    # override since i need sudo
+    echo "FuseDown (objectivefs)..."
+    CHECK TEST_DIR
+    CHECK CACHE_DIR
+    CHECK TEST_DIR
+    sudo umount ${TEST_DIR}
+    rm -Rf ${BASE_DIR}
+    echo "FuseDown (objectivefs) done"
 }
 
 BUCKET_NAME=nsdf-fuse-s3fs

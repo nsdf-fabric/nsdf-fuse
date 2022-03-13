@@ -52,12 +52,6 @@ function InitFuseTest() {
     echo "CACHE_DIR:          ${CACHE_DIR}"
     echo "LOG_DIR:            ${LOG_DIR}"
 
-    # create and share the directory
-    mkdir     -p ${BASE_DIR}  || true
-    mkdir     -p ${TEST_DIR}  || true
-    mkdir     -p ${CACHE_DIR} || true
-    mkdir     -p ${LOG_DIR}   || true
-
     echo "InitFuseTest done"
 }
 
@@ -69,17 +63,6 @@ function TerminateFuseTest() {
     echo "TerminateFuseTest done"
 }
 
-
-# ///////////////////////////////////////////////////////////
-function FuseDown() {
-    echo "FuseDown..."
-    CHECK TEST_DIR
-    CHECK CACHE_DIR
-    umount ${TEST_DIR} 
-    rm -Rf ${CACHE_DIR}/* 
-    rm -Rf ${TEST_DIR}/*
-    echo "FuseDown done"
-}
 
 # ///////////////////////////////////////////////////////////
 function CreateBucket() {

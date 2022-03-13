@@ -27,6 +27,13 @@ function AuthorizeJuiceFs() {
 function FuseUp() {
     # TODO: make sure juicefs is not using RAM cache
     echo "FuseUp"
+
+    # create and share the directory
+    mkdir     -p ${BASE_DIR}  || true
+    mkdir     -p ${TEST_DIR}  || true
+    mkdir     -p ${CACHE_DIR} || true
+    mkdir     -p ${LOG_DIR}   || true
+
     juicefs mount \
         ${BUCKET_NAME} \
         ${TEST_DIR} \
@@ -37,6 +44,17 @@ function FuseUp() {
     mount | grep ${TEST_DIR} # to make sure it's mounted
 }
 
+# ///////////////////////////////////////////////////////////
+function FuseDown() {
+    echo "FuseDown..."
+    CHECK TEST_DIR
+    CHECK CACHE_DIR
+    umount ${TEST_DIR} 
+    rm -Rf ${BASE_DIR}
+    echo "FuseDown done"
+}
+
+# /////////////////////////////////////////////////////////////////
 function PrintWarning() {
     echo "///////////////////////////////////////////////////////////////////////"
     echo "WARNING the JuiceFs file system must have been created in juicefs      "

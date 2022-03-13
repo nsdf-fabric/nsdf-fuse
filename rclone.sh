@@ -28,6 +28,13 @@ EOF
 
 # /////////////////////////////////////////////////////////////////
 function FuseUp() {
+
+    # create and share the directory
+    mkdir     -p ${BASE_DIR}  || true
+    mkdir     -p ${TEST_DIR}  || true
+    mkdir     -p ${CACHE_DIR} || true
+    mkdir     -p ${LOG_DIR}   || true
+
   rclone mount my-rclone-config-item:${BUCKET_NAME} ${TEST_DIR} \
     --config ${RCLONE_CONFIG_FILE} \
     --vfs-cache-mode writes \
@@ -38,6 +45,19 @@ function FuseUp() {
     --daemon
   mount | grep ${TEST_DIR}
   echo "rclone daemon started"
+}
+
+
+# ///////////////////////////////////////////////////////////
+function FuseDown() {
+    # override since i need sudo
+    echo "FuseDown (objectivefs)..."
+    CHECK TEST_DIR
+    CHECK CACHE_DIR
+    CHECK TEST_DIR
+    sudo umount ${TEST_DIR}
+    rm -Rf ${BASE_DIR}
+    echo "FuseDown (objectivefs) done"
 }
 
 BUCKET_NAME=nsdf-fuse-rclone

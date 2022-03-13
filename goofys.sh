@@ -25,9 +25,26 @@ function EnableCaching() {
 
 # /////////////////////////////////////////////////////////////////
 function FuseUp() {
+
+    # create and share the directory
+    mkdir     -p ${BASE_DIR}  || true
+    mkdir     -p ${TEST_DIR}  || true
+    mkdir     -p ${CACHE_DIR} || true
+    mkdir     -p ${LOG_DIR}   || true
+
     # logs goes to syslog (==there is no way to redirect it?)
     goofys --region ${AWS_DEFAULT_REGION} ${BUCKET_NAME} ${TEST_DIR}
     mount | grep ${TEST_DIR}
+}
+
+# ///////////////////////////////////////////////////////////
+function FuseDown() {
+    echo "FuseDown..."
+    CHECK TEST_DIR
+    CHECK CACHE_DIR
+    umount ${TEST_DIR} 
+    rm -Rf ${BASE_DIR}
+    echo "FuseDown done"
 }
 
 BUCKET_NAME=nsdf-fuse-goofys
