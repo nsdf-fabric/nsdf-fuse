@@ -106,6 +106,7 @@ function RemoveBucket() {
     CHECK BUCKET_NAME
     # note it can take a while before I see the destruction
     aws s3 rb --force s3://${BUCKET_NAME}
+    aws s3 ls 
     echo "RemoveBucket done"
 }
 
