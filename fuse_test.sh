@@ -92,6 +92,8 @@ function FuseDown() {
 # ///////////////////////////////////////////////////////////
 function CreateBucket() {
     NAME=$1
+    echo "CreateBucker ${NAME}"
+
     CHECK NAME
     CHECK AWS_ACCESS_KEY_ID
     CHECK AWS_SECRET_ACCESS_KEY
@@ -102,7 +104,11 @@ function CreateBucket() {
 # ///////////////////////////////////////////////////////////
 function RemoveBucket() {
     NAME=$1
+    echo "RemoveBucket ${NAME}"
+
     CHECK NAME
+
+    # note it can take a while before I see the destruction
     aws s3 rb --force s3://$NAME
 }
 
@@ -125,7 +131,8 @@ function RunFioTest() {
 
     echo "# ///////////////////////////////////////////////////////////"
     echo "Starting test [$1] TEST_DIR=${TEST_DIR}..." 
-    set -x
+    FuseUp
+
     fio $@ \
         --directory=${TEST_DIR} \
         --filename_format='$jobnum/$filenum/test.$jobnum.$filenum.bin' \
@@ -137,7 +144,8 @@ function RunFioTest() {
         --group_reporting \
         --ramp_time=2s \
         --direct=1 || true # i have spurious error so I am ignoring errors here
-    set +x
+    
+    FuseDown
     echo "Test [$1] done"
     echo
 
@@ -158,6 +166,13 @@ function RunFioReadTest() {
 }
 
 # /////////////////////////////////////////////////////
+function CleanBucket() {
+    FuseUp 
+    rm -Rf ${TEST_DIR}/* 
+    FuseDown
+}
+
+# /////////////////////////////////////////////////////
 function RunFuseTest() {
 
     TEST_DIR=${1:-/tmp/run-disk-test}
@@ -167,38 +182,50 @@ function RunFuseTest() {
     mkdir -p ${TEST_DIR}
     rm -Rf   ${TEST_DIR}/* 
 
-    # one sequential (tot-storage=filesize*numjobs=64G fuse-activity=size=64G)
-    FuseUp && RunFioWriteTest --name=one-seq-write   --rw=write --bs=4M --filesize=64G --numjobs=1     --size=64G && FuseDown
-    FuseUp && RunFioReadTest  --name=one-seq-read    --rw=read  --bs=4M --filesize=64G --numjobs=1     --size=64G && FuseDown
-    FuseUp && rm -Rf ${TEST_DIR}/* && FuseDown
+    if [[ "${FAST}" != "" ]] ; then
 
-    # multi sequential (tot-storage=filesize*numjobs=64G fuse-activity=size=64G)
-    FuseUp && RunFioWriteTest --name=multi-seq-write --rw=write --bs=4M  --filesize=1G  --numjobs=64   --size=64G && FuseDown
-    FuseUp && RunFioReadTest  --name=multi-seq-read  --rw=read  --bs=4M  --filesize=1G  --numjobs=64   --size=64G && FuseDown
-    FuseUp && rm -Rf ${TEST_DIR}/* && FuseDown
+         RunFioWriteTest --name=fast-test   --rw=write --bs=4M --filesize=32M --numjobs=1 --size=32M
 
-    # rand test (tot-storage=filesize*numjobs=64G fuse-activity=numjobs*size=8G) (WEIRD: rand test use --size with a different meaning)
-    FuseUp && RunFioWriteTest --name=rand-write --rw=randwrite  --bs=64k  --filesize=2G --numjobs=32   --size=256M && FuseDown
-    FuseUp && RunFioReadTest  --name=rand-read  --rw=randread   --bs=64k  --filesize=2G --numjobs=32   --size=256M && FuseDown
-    FuseUp && rm -Rf ${TEST_DIR}/* && FuseDown
+    else
 
-    # lot of writing small files (can take several minutes)
-    echo "# ///////////////////////////////////////////////////////////"    
-    echo "Start test [tar-xzf]..." 
-    wget  https://curl.se/download/curl-7.82.0.tar.gz 
-    FuseUp && time -p tar xzf curl-7.82.0.tar.gz 1>/dev/null -C ${TEST_DIR} && FuseDown
-    echo "Test [tar-xzf] done"
-    rm -f curl-7.82.0.tar.gz
-    echo
+        # one sequential (tot-storage=filesize*numjobs=64G fuse-activity=size=64G)
+        RunFioWriteTest --name=one-seq-write   --rw=write --bs=4M --filesize=64G --numjobs=1     --size=64G
+        RunFioReadTest  --name=one-seq-read    --rw=read  --bs=4M --filesize=64G --numjobs=1     --size=64G
+        CleanBucket
 
-    # lot of removal of small files
-    echo "# ///////////////////////////////////////////////////////////"    
-    echo "Start test [rm-file]..." 
-    FuseUp && time -p rm -Rf ${TEST_DIR}/* && FuseDown
-    echo "Test [rm-file] done." 
-    echo
+        # multi sequential (tot-storage=filesize*numjobs=64G fuse-activity=size=64G)
+        RunFioWriteTest --name=multi-seq-write --rw=write --bs=4M  --filesize=1G  --numjobs=64   --size=64G
+        RunFioReadTest  --name=multi-seq-read  --rw=read  --bs=4M  --filesize=1G  --numjobs=64   --size=64G
+        CleanBucket
 
-    FuseUp && rm -Rf ${TEST_DIR}/* && FuseDown
+        # rand test (tot-storage=filesize*numjobs=64G fuse-activity=numjobs*size=8G) (WEIRD: rand test use --size with a different meaning)
+        RunFioWriteTest --name=rand-write --rw=randwrite  --bs=64k  --filesize=2G --numjobs=32   --size=256M
+        RunFioReadTest  --name=rand-read  --rw=randread   --bs=64k  --filesize=2G --numjobs=32   --size=256M
+        CleanBucket
+
+        # lot of writing small files (can take several minutes)
+        echo "# ///////////////////////////////////////////////////////////"    
+        echo "Start test [tar-xzf]..." 
+        wget  https://curl.se/download/curl-7.82.0.tar.gz 
+        FuseUp 
+        time -p tar xzf curl-7.82.0.tar.gz 1>/dev/null -C ${TEST_DIR} 
+        FuseDown
+        echo "Test [tar-xzf] done"
+        rm -f curl-7.82.0.tar.gz
+        echo
+
+        # lot of removal of small files
+        echo "# ///////////////////////////////////////////////////////////"    
+        echo "Start test [rm-file]..." 
+        FuseUp 
+        time -p rm -Rf ${TEST_DIR}/* 
+        FuseDown
+        echo "Test [rm-file] done." 
+        echo
+
+    fi
+
+    CleanBucket
 
     echo "RunFuseTest TEST_DIR=${TEST_DIR} done"
 }
