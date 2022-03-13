@@ -30,7 +30,8 @@ function FuseUp() {
     --cache-dir ${CACHE_DIR} \
     --vfs-cache-mode minimal \
     --uid $UID \
-    --daemon || true # returns a non zero value
+    --daemon
+  echo "rclone daemon started"
   mount | grep ${TEST_DIR}
 }
 
