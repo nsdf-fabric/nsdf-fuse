@@ -4,10 +4,11 @@ source ./fuse_test.sh
 
 # /////////////////////////////////////////////////////////////////
 function InstallS3QL() {
+
+    export DEBIAN_FRONTEND=noninteractive 
     sudo apt install -y sqlite3 libsqlite3-dev pkg-config fuse3 libfuse3-dev
     sudo pip3 install --upgrade pip
-    sudo pip3 install pyfuse3 google-auth-oauthlib dugong apsw defusedxml
-    sudo pip3 install --upgrade trio
+    sudo pip3 install --upgrade pyfuse3 google-auth-oauthlib dugong apsw defusedxml trio
 
     # https://www.brightbox.com/docs/guides/s3ql/
     if [[ ! -f /usr/local/bin/s3qlstat ]] ; then
@@ -24,6 +25,7 @@ function InstallS3QL() {
 # /////////////////////////////////////////////////////////////////
 function CreateCredentials() {
     mkdir -p ${HOME}/.s3ql/
+
 cat << EOF > ${HOME}/.s3ql/authinfo2
 [default]
 backend-login: ${AWS_ACCESS_KEY_ID}
@@ -33,13 +35,15 @@ EOF
 }
 
 # /////////////////////////////////////////////////////////////////
-function FuseUp() {
+function FormatBucket() {
+
+    echo "FormatBucket (s3ql)..."
 
     # create and share the directory
     mkdir     -p ${BASE_DIR}  || true
     mkdir     -p ${TEST_DIR}  || true
     mkdir     -p ${CACHE_DIR} || true
-    mkdir     -p ${LOG_DIR}   || true    
+    mkdir     -p ${LOG_DIR}   || true   
 
     # create the bucket
     # https://www.rath.org/s3ql-docs/man/mkfs.html
@@ -50,6 +54,21 @@ function FuseUp() {
         --plain \
         s3://${AWS_DEFAULT_REGION}/${BUCKET_NAME}
 
+    
+    echo "FormatBucket (done)..."
+}
+
+# /////////////////////////////////////////////////////////////////
+function FuseUp() {
+
+    echo "FuseUp (s3ql)..."
+
+    # create and share the directory
+    mkdir     -p ${BASE_DIR}  || true
+    mkdir     -p ${TEST_DIR}  || true
+    mkdir     -p ${CACHE_DIR} || true
+    mkdir     -p ${LOG_DIR}   || true    
+
     # mount it
     # https://www.rath.org/s3ql-docs/man/mount.html
     # TODO: disable RAM cache
@@ -58,20 +77,19 @@ function FuseUp() {
         --log ${LOG_DIR}/log \
         --authfile ${HOME}/.s3ql/authinfo2 \
         --cachesize $(( ${DISK_CACHE_SIZE_MB} * 1024 ))
-    mount | grep ${TEST_DIR}
-}
 
+    mount | grep ${TEST_DIR}
+
+    echo "FuseUp (s3ql) done"
+}
 
 # ///////////////////////////////////////////////////////////
 function FuseDown() {
     # override since i need sudo
-    echo "FuseDown (objectivefs)..."
-    CHECK TEST_DIR
-    CHECK CACHE_DIR
-    CHECK TEST_DIR
+    echo "FuseDown (s3ql)..."
     sudo umount ${TEST_DIR}
     rm -Rf ${BASE_DIR}
-    echo "FuseDown (objectivefs) done"
+    echo "FuseDown (s3ql) done"
 }
 
 BUCKET_NAME=nsdf-fuse-s3ql
@@ -79,6 +97,7 @@ InitFuseTest
 InstallS3QL
 CreateCredentials
 CreateBucket 
+FormatBucket
 RunFuseTest 
 RemoveBucket 
 TerminateFuseTest
