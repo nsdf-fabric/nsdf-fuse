@@ -36,12 +36,15 @@ function MountBackend() {
              --region=${AWS_DEFAULT_REGION} \
              --blockCacheSize=${NUM_BLOCK_TO_CACHE} \
              --blockCacheThreads=${NUM_THREADS} \
-             -o default_permissions,allow_other \
-             -o uid=$UID \
              ${BUCKET_NAME} \
              ${BACKEND_DIR}  
-    
-    mount | grep ${CACHE_DIR}
+
+     mount | grep ${CACHE_DIR}
+
+    if [[ ! -f ${BASE_DIR}/s3_backer_backend_formatted ]] ; then
+        mkfs.ext4 -E nodiscard -F ${BACKEND_DIR}/file
+        touch ${BASE_DIR}/s3_backer_backend_formatted
+    fi             
 }
 
 # /////////////////////////////////////////////////////////////////
@@ -64,12 +67,7 @@ function UMountLoopBack() {
     umount ${TEST_DIR}
 }
 
-# /////////////////////////////////////////////////////////////////
-function CreateBackend()  {
-    MountBackend 
-    mkfs.ext4 -E nodiscard -F ${BACKEND_DIR}/file
-    UMountBackend
-}
+
 
 # /////////////////////////////////////////////////////////////////
 function FuseUp(){
@@ -99,7 +97,6 @@ BUCKET_NAME=nsdf-fuse-s3backer
 InitFuseTest 
 InstallS3Backer
 CreateBucket
-CreateBackend
 RunFuseTest  
 RemoveBucket 
 TerminateFuseTest 
