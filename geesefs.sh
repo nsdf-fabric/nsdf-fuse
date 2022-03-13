@@ -4,12 +4,11 @@ source ./fuse_test.sh
 
 # /////////////////////////////////////////////////////////////////
 function InstallGeeseFs() {
-    if [[ ! -f $HOME/bin/geesefs ]] ; then
+    if [[ ! -f ${HOME}/bin/geesefs ]] ; then
         wget https://github.com/yandex-cloud/geesefs/releases/latest/download/geesefs-linux-amd64
         mkdir -p $HOME/bin
-        export PATH=$PATH:$HOME/bin
-        mv geesefs-linux-amd64 $HOME/bin/geesefs
-        chmod a+x $HOME/bin/geesefs
+        mv geesefs-linux-amd64 ${HOME}/bin/geesefs
+        chmod a+x ${HOME}/bin/geesefs
     fi
 }
 
@@ -28,7 +27,7 @@ EOF
 function FuseUp() {
     # see https://github.com/yandex-cloud/geesefs
     # --debug_s3 --debug_fuse \
-    geesefs \
+    ${HOME}/bin/geesefs \
         --cache ${CACHE_DIR} \
         --no-checksum \
         --memory-limit ${DISK_CACHE_SIZE_MB} \
