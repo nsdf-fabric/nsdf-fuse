@@ -9,9 +9,8 @@ function InstallRClone() {
 
 # /////////////////////////////////////////////////////////////////
 function CreateCredentials() {
-  # configuration file
-  cat << EOF > ./rclone.conf
-[rclone-s3]
+  cat << EOF > ${RCLONE_CONFIG_FILE}
+[my-rclone-config-item]
 type=s3
 provider=Other
 access_key_id=${AWS_ACCESS_KEY_ID}
@@ -19,15 +18,15 @@ secret_access_key=${AWS_SECRET_ACCESS_KEY}
 region=${AWS_DEFAULT_REGION} 
 endpoint=https://s3.${AWS_DEFAULT_REGION}.amazonaws.com
 EOF
-  chmod 600 ./rclone.conf
+  chmod 600 ${RCLONE_CONFIG_FILE}
 }
 
 # /////////////////////////////////////////////////////////////////
 function FuseUp() {
   rclone mount \
-    rclone-s3:${BUCKET_NAME} \
+    my-rclone-config-item:${BUCKET_NAME} \
     ${TEST_DIR} \
-    --config ./rclone.conf \
+    --config ${RCLONE_CONFIG_FILE} \
     --vfs-cache-mode writes \
     --use-server-modtime \
     --cache-dir ${CACHE_DIR} \
@@ -36,8 +35,8 @@ function FuseUp() {
   mount | grep ${TEST_DIR}
 }
 
-
 BUCKET_NAME=nsdf-fuse-rclone
+RCLONE_CONFIG_FILE=$HOME/nsdf-test-rclone.conf
 InitFuseBenchmark 
 InstallRClone
 CreateCredentials
@@ -45,5 +44,5 @@ CreateBucket
 RunFuseTest 
 RemoveBucket
 TerminateFuseBenchmark
-rm -f ./rclone.conf
+rm -f $RCLONE_CONFIG_FILE
 
