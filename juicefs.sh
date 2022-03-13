@@ -27,13 +27,6 @@ function FuseUp() {
     mount | grep ${TEST_DIR} # to make sure it's mounted
 }
 
-function FuseDown() {
-    # unmount but keeping the remote data
-    umount ${TEST_DIR}    
-    rm -Rf ${CACHE_DIR}/* 
-    rm -Rf ${TEST_DIR}/*
-}
-
 # install juicefs
 if [[ ! -f /usr/bin/juicefs ]] ; then
     wget -q https://juicefs.com/static/juicefs

@@ -57,6 +57,13 @@ function InitFuseBenchmark() {
     echo "InitFuseBenchmark ${NAME} done"
 }
 
+# ///////////////////////////////////////////////////////////
+function FuseDown() {
+    # unmount but keeping the remote data
+    umount ${TEST_DIR}    
+    rm -Rf ${CACHE_DIR}/* 
+    rm -Rf ${TEST_DIR}/*
+}
 
 
 # ///////////////////////////////////////////////////////////
