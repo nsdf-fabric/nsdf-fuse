@@ -95,7 +95,12 @@ function FuseUp() {
 function FuseDown() {
     # override since i need sudo
     echo "FuseDown (s3ql)..."
-    sudo umount ${TEST_DIR}
+
+    umount.s3ql \
+        --cachedir ${CACHE_DIR} \
+        --log ${LOG_DIR}/log \    
+        ${TEST_DIR}
+
     rm -Rf ${BASE_DIR}
     echo "FuseDown (s3ql) done"
 }
