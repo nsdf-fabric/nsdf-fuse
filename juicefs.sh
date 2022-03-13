@@ -1,33 +1,22 @@
 #!/bin/bash
 set -e # exit when any command fails
+source ./fuse_test.sh
+NAME=$(basename "$0" .sh)
 
-source ./utils.sh
-source ./disk.sh
+CHECK JUICE_TOKEN
 
-NAME=juicefs
-InitFuseBenchmark $NAME
+# /////////////////////////////////////////////////////////////////
+function InstallJuiceFs() {
+    if [[ ! -f /usr/bin/juicefs ]] ; then
+        wget -q https://juicefs.com/static/juicefs
+        chmod +x juicefs 
+        sudo mv juicefs /usr/bin
+    fi
+    echo "jucefs path is $(which juicefs)"
+}
 
-echo "///////////////////////////////////////////////////////////////////////"
-echo "WARNING the JuiceFs file system must have been created in juicefs      "
-echo "WARNING the File system to create must have a name nsdf-test-juicefs   "
-echo "WARNING also set the Trash to 0 to avoid extra file kept in storage    "
-echo "WARNING see https://juicefs.com/console/create                         "
-echo "WARNING the token must be set as environment variable                  "
-echo "///////////////////////////////////////////////////////////////////////"
-
-CHECK_ENV JUICE_TOKEN
-
-# install juicefs
-if [[ ! -f /usr/bin/juicefs ]] ; then
-    wget -q https://juicefs.com/static/juicefs
-    chmod +x juicefs 
-    sudo mv juicefs /usr/bin
-fi
-echo "jucefs path is $(which juicefs)"
-
-
-
-function JuiceAuth() {
+# /////////////////////////////////////////////////////////////////
+function AuthorizeJuiceFs() {
     # this create the bucket
     # IMPORTANT: internally the real bucket name will be juicefs-${BUCKET_NAME}
     juicefs auth \
@@ -37,6 +26,7 @@ function JuiceAuth() {
         --secretkey ${AWS_SECRET_ACCESS_KEY} 
 }
 
+# /////////////////////////////////////////////////////////////////
 function FuseUp() {
     # TODO: make sure juicefs is not using RAM cache
     echo "FuseUp"
@@ -50,13 +40,21 @@ function FuseUp() {
     mount | grep ${TEST_DIR} # to make sure it's mounted
 }
 
-# on AWS
-BUCKET_REAL_NAME=juicefs-${BUCKET_NAME}
+echo "///////////////////////////////////////////////////////////////////////"
+echo "WARNING the JuiceFs file system must have been created in juicefs      "
+echo "WARNING the File system to create must have a name nsdf-test-juicefs   "
+echo "WARNING also set the Trash to 0 to avoid extra file kept in storage    "
+echo "WARNING see https://juicefs.com/console/create                         "
+echo "WARNING the token must be set as environment variable                  "
+echo "///////////////////////////////////////////////////////////////////////"
 
-JuiceAuth
-RunDiskTest ${TEST_DIR}
-aws s3 rb --force s3://${BUCKET_REAL_NAME}
-rm -Rf ${BASE_DIR}
+InitFuseBenchmark ${NAME}
+InstallJuiceFs
+AuthorizeJuiceFs
+CreateBucket juicefs-${BUCKET_NAME}
+RunFuseTest ${TEST_DIR}
+RemoveBucket juicefs-${BUCKET_NAME}
+TerminateFuseBenchmark ${NAME}
 
 
 

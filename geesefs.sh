@@ -1,28 +1,29 @@
 #!/bin/bash
 set -e # exit when any command fails
+source ./fuse_test.sh
+NAME=$(basename "$0" .sh)
 
-source ./utils.sh
-source ./disk.sh
-InitFuseBenchmark geesefs
+# /////////////////////////////////////////////////////////////////
+function InstallGeeseFs() {
+    if [[ ! -f /usr/bin/geesefs ]] ; then
+        wget https://github.com/yandex-cloud/geesefs/releases/latest/download/geesefs-linux-amd64
+        sudo mv geesefs-linux-amd64 /usr/bin/geesefs
+        chmod a+x /usr/bin/geesefs
+    fi
+}
 
-# install geesefs
-if [[ ! -f /usr/bin/geesefs ]] ; then
-    wget https://github.com/yandex-cloud/geesefs/releases/latest/download/geesefs-linux-amd64
-    sudo mv geesefs-linux-amd64 /usr/bin/geesefs
-    chmod a+x /usr/bin/geesefs
-fi
-
-# create the bucket if necessary
-aws s3 mb s3://${BUCKET_NAME} --region ${AWS_DEFAULT_REGION} 
-
-# create a file with the credentials
-mkdir -p ${HOME}/.aws
+# /////////////////////////////////////////////////////////////////
+function CreateCredentials() {
+    # create a file with the credentials
+    mkdir -p ${HOME}/.aws
 cat << EOF > ${HOME}/.aws/credentials
 [default]
 aws_access_key_id=${AWS_ACCESS_KEY_ID}
 aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}
 EOF
+}
 
+# /////////////////////////////////////////////////////////////////
 function FuseUp() {
     # see https://github.com/yandex-cloud/geesefs
     # --debug_s3 --debug_fuse \
@@ -39,8 +40,11 @@ function FuseUp() {
     mount | grep ${TEST_DIR}
 }
 
-RunDiskTest ${TEST_DIR}  
-TerminateFuseBenchmark geesefs
-
-# remove credentials
+InitFuseBenchmark ${NAME}
+InstallGeeseFs
+CreateBucket ${BUCKET_NAME}
+CreateCredentials
+RunFuseTest ${TEST_DIR}  
+RemoveBucket ${BUCKET_NAME}  
+TerminateFuseBenchmark ${NAME}
 rm -f ${HOME}/.aws/credentials

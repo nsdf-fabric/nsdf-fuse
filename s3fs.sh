@@ -1,23 +1,22 @@
 #!/bin/bash
 set -e # exit when any command fails
+source ./fuse_test.sh
+NAME=$(basename "$0" .sh)
 
-source ./utils.sh
-source ./disk.sh
-InitFuseBenchmark s3fs
+# /////////////////////////////////////////////////////////////////
+function InstallS3Fs() {
+    sudo apt install -y s3fs 
+}
 
-# install s3fs
-sudo apt install -y s3fs 
+# /////////////////////////////////////////////////////////////////
+function CreateCredentials() {
+    echo ${AWS_ACCESS_KEY_ID}:${AWS_SECRET_ACCESS_KEY} > ${HOME}/.s3fs
+    chmod 600 ${HOME}/.s3fs
+}
 
-# automatic authorization
-echo ${AWS_ACCESS_KEY_ID}:${AWS_SECRET_ACCESS_KEY} > ${HOME}/.s3fs
-chmod 600 ${HOME}/.s3fs
-
-# see http://manpages.ubuntu.com/manpages/bionic/man1/s3fs.1.html
-
-# create the bucket if necessary
-aws s3 mb s3://${BUCKET_NAME} --region ${AWS_DEFAULT_REGION} 
-
+# /////////////////////////////////////////////////////////////////
 function FuseUp() {
+    # see http://manpages.ubuntu.com/manpages/bionic/man1/s3fs.1.html
     # see https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-s3fs
     # TODO: there is no way to limit disk cache?
     # NOTE: -o kernel_cache (DONT' WANT RAM CACHE)
@@ -37,9 +36,11 @@ function FuseUp() {
     mount | grep ${TEST_DIR}  
 }
 
-RunDiskTest ${TEST_DIR}  
-
-aws s3 rb --force s3://${BUCKET_NAME}  
-rm -Rf ${BASE_DIR}
-
+InitFuseBenchmark ${NAME}
+InstallS3Fs
+CreateCredentials
+CreateBucket ${BUCKET_NAME}
+RunFuseTest ${TEST_DIR}  
+RemoveBucket ${BUCKET_NAME}  
+TerminateFuseBenchmark ${NAME}
 rm -f ${HOME}/.s3fs

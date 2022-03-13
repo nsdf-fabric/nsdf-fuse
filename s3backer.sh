@@ -1,32 +1,31 @@
 #!/bin/bash
 set -e # exit when any command fails
+source ./fuse_test.sh
+NAME=$(basename "$0" .sh)
 
-source ./utils.sh
-source ./disk.sh
-InitFuseBenchmark s3backer
+# /////////////////////////////////////////////////////////////////
+function InstallS3Backer() {
+    sudo apt install -y s3backer
+    sudo sh -c 'echo user_allow_other >> /etc/fuse.conf'
+}
 
-# install s3 backer
-sudo apt install -y s3backer
-sudo sh -c 'echo user_allow_other >> /etc/fuse.conf'
-
-# do `s3backer --help`` for all options
-OVERALL_SIZE=1T                                                   # overall size, you should known in advance
-BLOCK_CACHE_FILE=${BASE_DIR}/blocks                               # where to store block informations
-BLOCK_SIZE_MB=4                                                   # single block size
-NUM_BLOCK_TO_CACHE=$(( ${RAM_CACHE_SIZE_MB} / ${BLOCK_SIZE_MB} )) # number of blocks to cache
-NUM_THREADS=32                                                    # number of threads
-
-S3_BACKEND_DIR=${BASE_DIR}/s3_backend
-mkdir -p ${S3_BACKEND_DIR}
-
-# create the bucket if necessary
-aws s3 mb s3://${BUCKET_NAME} --region ${AWS_DEFAULT_REGION} 
-
+# /////////////////////////////////////////////////////////////////
 function FuseUp(){
 
     # Explanation:
     #   Linux loop back mount
     #   s3backer <---> remote S3 storage
+
+    # do `s3backer --help`` for all options
+    OVERALL_SIZE=1T                                                   # overall size, you should known in advance
+    BLOCK_CACHE_FILE=${BASE_DIR}/blocks                               # where to store block informations
+    BLOCK_SIZE_MB=4                                                   # single block size
+    NUM_BLOCK_TO_CACHE=$(( ${RAM_CACHE_SIZE_MB} / ${BLOCK_SIZE_MB} )) # number of blocks to cache
+    NUM_THREADS=32                                                    # number of threads
+
+    S3_BACKEND_DIR=${BASE_DIR}/s3_backend
+    mkdir -p ${S3_BACKEND_DIR}
+
     s3backer \
         --accessId=${AWS_ACCESS_KEY_ID} \
         --accessKey=${AWS_SECRET_ACCESS_KEY} \
@@ -54,8 +53,10 @@ function FuseUp(){
     mount | grep ${TEST_DIR}
 }
 
-RunDiskTest ${TEST_DIR}  
 
-aws s3 rb --force s3://${BUCKET_NAME}  
-rm -Rf ${BASE_DIR}
+InitFuseBenchmark ${NAME}
+CreateBucket ${BUCKET_NAME}
+RunFuseTest ${TEST_DIR}  
+RemoveBucket ${BUCKET_NAME}  
+TerminateFuseBenchmark
 

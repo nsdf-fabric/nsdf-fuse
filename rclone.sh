@@ -1,15 +1,17 @@
 #!/bin/bash
 set -e # exit when any command fails
+source ./fuse_test.sh
+NAME=$(basename "$0" .sh)
 
-source ./utils.sh
-source ./disk.sh
-InitFuseBenchmark rclone
+# /////////////////////////////////////////////////////////////////
+function InstallRClone() {
+  sudo apt -qq install -y rclone
+}
 
-# install rclone
-sudo apt -qq install -y rclone
-
-# configuration file
-cat << EOF > ./rclone.conf
+# /////////////////////////////////////////////////////////////////
+function CreateCredentials() {
+  # configuration file
+  cat << EOF > ./rclone.conf
 [rclone-s3]
 type=s3
 provider=Other
@@ -18,12 +20,10 @@ secret_access_key=${AWS_SECRET_ACCESS_KEY}
 region=${AWS_DEFAULT_REGION} 
 endpoint=https://s3.${AWS_DEFAULT_REGION}.amazonaws.com
 EOF
-chmod 600 ./rclone.conf
+  chmod 600 ./rclone.conf
+}
 
-# create the bucket if necessary
-aws s3 mb s3://${BUCKET_NAME} --region ${AWS_DEFAULT_REGION} 
-
-
+# /////////////////////////////////////////////////////////////////
 function FuseUp() {
   rclone mount \
     rclone-s3:${BUCKET_NAME} \
@@ -37,10 +37,13 @@ function FuseUp() {
   mount | grep ${TEST_DIR}
 }
 
-RunDiskTest ${TEST_DIR}    
 
-aws s3 rb --force s3://${BUCKET_NAME}  
-rm -Rf ${BASE_DIR}
-
+InitFuseBenchmark ${NAME}
+InstallRClone
+CreateCredentials
+CreateBucket ${BUCKET_NAME}
+RunFuseTest ${TEST_DIR}    
+RemoveBucket ${BUCKET_NAME} 
+TerminateFuseBenchmark  ${NAME}
 rm -f ./rclone.conf
 
