@@ -21,39 +21,32 @@ function FuseUp(){
     OVERALL_SIZE=1T                                                   # overall size, you should known in advance
     BLOCK_SIZE_MB=4                                                   # single block size
     NUM_BLOCK_TO_CACHE=$(( ${RAM_CACHE_SIZE_MB} / ${BLOCK_SIZE_MB} )) # number of blocks to cache
-    NUM_THREADS=64          
-                                              # number of threads
-    # where to cache/store block informations
-    BLOCK_CACHE_FILE=${CACHE_DIR}/blocks   
+    NUM_THREADS=64                                                    # number of threads
 
-    # directory that sync with S3 (note: it's a virtual directory)
-    BACKEND_DIR=${CACHE_DIR}/backend_dir
-    
-    mkdir -p ${BACKEND_DIR}
+    mkdir -p ${CACHE_DIR}/backend
     s3backer --accessId=${AWS_ACCESS_KEY_ID} \
              --accessKey=${AWS_SECRET_ACCESS_KEY} \
-             --blockCacheFile=${BLOCK_CACHE_FILE} \
+             --blockCacheFile=${CACHE_DIR}/block_cache_file \
              --blockSize=${BLOCK_SIZE_MB}M \
              --size=${OVERALL_SIZE} \
              --region=${AWS_DEFAULT_REGION} \
              --blockCacheSize=${NUM_BLOCK_TO_CACHE} \
              --blockCacheThreads=${NUM_THREADS} \
              ${BUCKET_NAME} \
-             ${BACKEND_DIR}  
+             ${CACHE_DIR}/backend  
 
      mount | grep ${CACHE_DIR}
 
     if [[ ! -f ${BASE_DIR}/s3_backer_backend_formatted ]] ; then
         echo "Formatting s3 backend..."
-        mkfs.ext4 -E nodiscard -F ${BACKEND_DIR}/file
+        mkfs.ext4 -E nodiscard -F ${CACHE_DIR}/backend/file
         touch ${BASE_DIR}/s3_backer_backend_formatted
         echo "s3 backend formatted"
     fi
 
     mount -o loop \
           -o discard \
-          -o default_permissions,allow_other \
-          ${BACKEND_DIR}/file \
+          ${CACHE_DIR}/backend/file \
           ${TEST_DIR}
     mount | grep ${TEST_DIR}
     echo "FuseUp (s3backer) done"
@@ -66,9 +59,7 @@ function FuseDown() {
     CHECK TEST_DIR
     CHECK CACHE_DIR
     umount ${TEST_DIR}
-    umount ${BACKEND_DIR}
-    umount ${TEST_DIR} 
-    umount ${BACKEND_DIR}
+    umount ${CACHE_DIR}/backend
     rm -Rf ${CACHE_DIR}/* 
     rm -Rf ${TEST_DIR}/*
     echo "FuseDown (s3backer) done"
