@@ -8,6 +8,7 @@ function InstallS3Backer() {
     sudo sh -c 'echo user_allow_other >> /etc/fuse.conf'
 }
 
+# /////////////////////////////////////////////////////////////////
 function MountBackend() {
 
     # create and share the directory
@@ -61,14 +62,6 @@ function FormatBackend() {
 
 
 # /////////////////////////////////////////////////////////////////
-function FuseUp(){
-    echo "FuseUp (s3backer)..."
-    MountBackend
-    MountLoopBack
-    echo "FuseUp (s3backer) done"
-}
-
-# /////////////////////////////////////////////////////////////////
 function UMountLoopback() {
     sudo umount ${TEST_DIR}
 }
@@ -76,6 +69,15 @@ function UMountLoopback() {
 # /////////////////////////////////////////////////////////////////
 function UMountBackend() {
     umount ${CACHE_DIR}/backend    
+}
+
+
+# /////////////////////////////////////////////////////////////////
+function FuseUp(){
+    echo "FuseUp (s3backer)..."
+    MountBackend
+    MountLoopBack
+    echo "FuseUp (s3backer) done"
 }
 
 # /////////////////////////////////////////////////////////////////
