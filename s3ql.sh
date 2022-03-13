@@ -97,7 +97,6 @@ function FuseDown() {
     echo "FuseDown (s3ql)..."
 
     umount.s3ql \
-        --cachedir ${CACHE_DIR} \
         --log ${LOG_DIR}/log \    
         ${TEST_DIR}
 
