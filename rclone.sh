@@ -23,14 +23,13 @@ EOF
 
 # /////////////////////////////////////////////////////////////////
 function FuseUp() {
-  rclone mount \
-    my-rclone-config-item:${BUCKET_NAME} \
-    ${TEST_DIR} \
+  rclone mount my-rclone-config-item:${BUCKET_NAME} ${TEST_DIR} \
     --config ${RCLONE_CONFIG_FILE} \
     --vfs-cache-mode writes \
     --use-server-modtime \
     --cache-dir ${CACHE_DIR} \
     --vfs-cache-mode minimal \
+    --uid $UID \
     --daemon
   mount | grep ${TEST_DIR}
 }
