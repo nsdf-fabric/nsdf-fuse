@@ -54,9 +54,9 @@ function FormatBucket() {
     # create the bucket
     # https://www.rath.org/s3ql-docs/man/mkfs.html
     mkfs.s3ql \
-        s3://${AWS_DEFAULT_REGION}/${BUCKET_NAME} \
         --cachedir ${CACHE_DIR} \
-        --log ${LOG_DIR}/log 
+        --log ${LOG_DIR}/log \
+        s3://${AWS_DEFAULT_REGION}/${BUCKET_NAME}
 
     echo "FormatBucket (done)..."
 }
@@ -77,11 +77,11 @@ function FuseUp() {
     # TODO: disable RAM cache
     for i in 1 2 3 4 5; do 
         mount.s3ql \
-            s3://${AWS_DEFAULT_REGION}/${BUCKET_NAME} \
-            ${TEST_DIR} \
             --cachedir ${CACHE_DIR} \
             --log ${LOG_DIR}/log \
-            --cachesize $(( ${DISK_CACHE_SIZE_MB} * 1024 )) && break
+            --cachesize $(( ${DISK_CACHE_SIZE_MB} * 1024 )) \
+            s3://${AWS_DEFAULT_REGION}/${BUCKET_NAME} \
+            ${TEST_DIR}  && break
         sleep 1
     done
     
@@ -97,7 +97,8 @@ function FuseDown() {
     echo "FuseDown (s3ql)..."
 
     umount.s3ql \
-        --log ${LOG_DIR}/log \    
+        --cachedir ${CACHE_DIR} \
+        --log ${LOG_DIR}/log \
         ${TEST_DIR}
 
     rm -Rf ${BASE_DIR}
