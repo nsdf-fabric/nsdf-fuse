@@ -8,8 +8,10 @@ function InstallS3Backer() {
     sudo sh -c 'echo user_allow_other >> /etc/fuse.conf'
 }
 
+
 # /////////////////////////////////////////////////////////////////
-function MountBackend() {
+function FuseUp(){
+    echo "FuseUp (s3backer)..."
 
     # Explanation:
     #   Linux loop back mount
@@ -42,38 +44,17 @@ function MountBackend() {
      mount | grep ${CACHE_DIR}
 
     if [[ ! -f ${BASE_DIR}/s3_backer_backend_formatted ]] ; then
+        echo "Formatting s3 backend..."
         mkfs.ext4 -E nodiscard -F ${BACKEND_DIR}/file
         touch ${BASE_DIR}/s3_backer_backend_formatted
-    fi             
-}
+        echo "s3 backend formatted"
+    fi
 
-# /////////////////////////////////////////////////////////////////
-function UMountBackend() {
-    umount ${BACKEND_DIR}
-}
-
-# /////////////////////////////////////////////////////////////////
-function MountLoopBack() {
     mount -o loop \
           -o discard \
           -o default_permissions,allow_other \
-          -o uid=$UID \
           ${BACKEND_DIR}/file \
           ${TEST_DIR}
-}
-
-# /////////////////////////////////////////////////////////////////
-function UMountLoopBack() {
-    umount ${TEST_DIR}
-}
-
-
-
-# /////////////////////////////////////////////////////////////////
-function FuseUp(){
-    echo "FuseUp (s3backer)..."
-    MountBackend
-    MountLoopBack
     mount | grep ${TEST_DIR}
     echo "FuseUp (s3backer) done"
 }
@@ -84,8 +65,8 @@ function FuseDown() {
     echo "FuseDown (s3backer)..."
     CHECK TEST_DIR
     CHECK CACHE_DIR
-    UMountLoopBack
-    UMountBackend
+    umount ${TEST_DIR}
+    umount ${BACKEND_DIR}
     umount ${TEST_DIR} 
     umount ${BACKEND_DIR}
     rm -Rf ${CACHE_DIR}/* 
