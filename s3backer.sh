@@ -28,6 +28,8 @@ function MountBackend() {
     NUM_THREADS=64                                                    # number of threads
 
     mkdir -p ${CACHE_DIR}/backend
+
+    # adding force because I have problems
     s3backer --accessId=${AWS_ACCESS_KEY_ID} \
              --accessKey=${AWS_SECRET_ACCESS_KEY} \
              --blockCacheFile=${CACHE_DIR}/block_cache_file \
@@ -36,6 +38,7 @@ function MountBackend() {
              --region=${AWS_DEFAULT_REGION} \
              --blockCacheSize=${NUM_BLOCK_TO_CACHE} \
              --blockCacheThreads=${NUM_THREADS} \
+             --force \
              ${BUCKET_NAME} \
              ${CACHE_DIR}/backend  
 
@@ -55,12 +58,6 @@ function FormatBackend() {
 function UMountBackend() {
     echo "UMountBackend..."
     umount ${CACHE_DIR}/backend  
-    # see https://manpages.ubuntu.com/manpages/jammy/man1/s3backer.1.html
-    s3backer --accessId=${AWS_ACCESS_KEY_ID} \
-             --accessKey=${AWS_SECRET_ACCESS_KEY} \
-             --region=${AWS_DEFAULT_REGION} \
-             --reset-mounted-flag \
-             ${BUCKET_NAME} 
     echo "UMountBackend done"  
 }
 
