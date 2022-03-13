@@ -3,8 +3,13 @@ set -e # exit when any command fails
 source ./fuse_test.sh
 
 # /////////////////////////////////////////////////////////////////
-function InstallRClone() {
-  sudo apt -qq install -y rclone
+function InstallRClone() {\
+  if [[ ! -f ~/.rclone.installed ]] ; then
+    wget https://downloads.rclone.org/v1.57.0/rclone-v1.57.0-linux-amd64.deb
+    sudo dpkg -i rclone-v1.57.0-linux-amd64.deb
+    rm rclone-v1.57.0-linux-amd64.deb
+    touch ~/.rclone.installed
+  fi
 }
 
 # /////////////////////////////////////////////////////////////////
