@@ -96,6 +96,7 @@ function CreateBucket() {
     CHECK AWS_SECRET_ACCESS_KEY
     CHECK AWS_DEFAULT_REGION
     aws s3 mb s3://${BUCKET_NAME} --region ${AWS_DEFAULT_REGION} 
+    aws s3 ls 
     echo "CreateBuckerdone"
 }
 
