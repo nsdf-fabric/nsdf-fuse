@@ -1,7 +1,6 @@
 #!/bin/bash
 set -e # exit when any command fails
 source ./fuse_test.sh
-NAME=$(basename "$0" .sh)
 
 # /////////////////////////////////////////////////////////////////
 function InstallGeeseFs() {
@@ -40,11 +39,11 @@ function FuseUp() {
     mount | grep ${TEST_DIR}
 }
 
-InitFuseBenchmark ${NAME}
+InitFuseBenchmark geesefs
 InstallGeeseFs
 CreateBucket ${BUCKET_NAME}
 CreateCredentials
 RunFuseTest ${TEST_DIR}  
 RemoveBucket ${BUCKET_NAME}  
-TerminateFuseBenchmark ${NAME}
+TerminateFuseBenchmark geesefs
 rm -f ${HOME}/.aws/credentials

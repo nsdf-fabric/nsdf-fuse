@@ -7,8 +7,8 @@ function InitFuseBenchmark() {
 
     echo "InitFuseBenchmark ${1}..."
 
-    NAME=$1
-    CHECK NAME
+    BUCKET_NAME=$1
+    CHECK BUCKET_NAME
     
     CHECK AWS_ACCESS_KEY_ID
     CHECK AWS_SECRET_ACCESS_KEY
@@ -32,7 +32,6 @@ function InitFuseBenchmark() {
     fi 
 
     # for boto3 aws-cli tools
-    export BUCKET_NAME=nsdf-fuse-test-${NAME}
 
     # CACHE SIZE IN MB, make it small so that numbers are not affected too much by disk cache
     export DISK_CACHE_SIZE_MB=1024
@@ -41,7 +40,8 @@ function InitFuseBenchmark() {
     export RAM_CACHE_SIZE_MB=1024
 
     # this will contain FUSE mount point, logs etc
-    export BASE_DIR=${HOME}/mount/${BUCKET_NAME}
+    export BASE_DIR=${HOME}/mount/buckets/${BUCKET_NAME}
+
     export TEST_DIR=${BASE_DIR}/test
     export CACHE_DIR=${BASE_DIR}/cache
     export LOG_DIR=${BASE_DIR}/log
@@ -61,23 +61,23 @@ function InitFuseBenchmark() {
     mkdir     -p ${CACHE_DIR} || true
     mkdir     -p ${LOG_DIR}   || true
 
-    echo "InitFuseBenchmark ${NAME} done"
+    echo "InitFuseBenchmark ${1} done"
 }
 
 # ///////////////////////////////////////////////////////////
 function TerminateFuseBenchmark() {
     echo "TerminateFuseBenchmark ${1}..."
-    NAME=$1
-    CHECK NAME
+    BUCKET_NAME=$1
+    CHECK BUCKET_NAME
     rm -Rf ${BASE_DIR}
-    echo "TerminateFuseBenchmark ${NAME} done"
+    echo "TerminateFuseBenchmark ${1} done"
 }
 
 
 # ///////////////////////////////////////////////////////////
 function FuseDown() {
 
-    echo "FuseDown TEST_DIR=${TEST_DIR}..."
+    echo "FuseDown..."
 
     CHECK TEST_DIR
     CHECK CACHE_DIR
@@ -87,38 +87,34 @@ function FuseDown() {
     rm -Rf ${CACHE_DIR}/* 
     rm -Rf ${TEST_DIR}/*
 
-    echo "FuseDown TEST_DIR=${TEST_DIR} done"
+    echo "FuseDown done"
 }
 
 # ///////////////////////////////////////////////////////////
 function CreateBucket() {
     echo "CreateBucker $1..."
-    NAME=$1
-    CHECK NAME
+    __bucket_name__=$1
+    CHECK __bucket_name__
     CHECK AWS_ACCESS_KEY_ID
     CHECK AWS_SECRET_ACCESS_KEY
     CHECK AWS_DEFAULT_REGION
-    aws s3 mb s3://${BUCKET_NAME} --region ${AWS_DEFAULT_REGION} 
+    aws s3 mb s3://${__bucket_name__} --region ${AWS_DEFAULT_REGION} 
     echo "CreateBucker $1 done"
 }
 
 # ///////////////////////////////////////////////////////////
 function RemoveBucket() {
     echo "RemoveBucket $1..."
-
-    NAME=$1
-    CHECK NAME
-
+    __bucket_name__=$1
+    CHECK __buckt_name__
     # note it can take a while before I see the destruction
-    aws s3 rb --force s3://$NAME
-
+    aws s3 rb --force s3://${__bucket_name__}
     echo "RemoveBucket $1 done"
 }
 
 
 # ///////////////////////////////////////////////////////////
 function CHECK() { 
-  name=${!1};
   if [[ "${!1}" == "" ]] ; then 
     echo "ERROR \$$1 is empty"
     # exit 1 

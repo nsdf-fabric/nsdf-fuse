@@ -1,7 +1,6 @@
 #!/bin/bash
 set -e # exit when any command fails
 source ./fuse_test.sh
-NAME=$(basename "$0" .sh)
 
 CHECK JUICE_TOKEN
 
@@ -40,20 +39,25 @@ function FuseUp() {
     mount | grep ${TEST_DIR} # to make sure it's mounted
 }
 
-echo "///////////////////////////////////////////////////////////////////////"
-echo "WARNING the JuiceFs file system must have been created in juicefs      "
-echo "WARNING the File system to create must have a name nsdf-test-juicefs   "
-echo "WARNING also set the Trash to 0 to avoid extra file kept in storage    "
-echo "WARNING see https://juicefs.com/console/create                         "
-echo "WARNING the token must be set as environment variable                  "
-echo "///////////////////////////////////////////////////////////////////////"
+function PrintWarning() {
+    echo "///////////////////////////////////////////////////////////////////////"
+    echo "WARNING the JuiceFs file system must have been created in juicefs      "
+    echo "WARNING the File system to create must have a name nsdf-test-juicefs   "
+    echo "WARNING also set the Trash to 0 to avoid extra file kept in storage    "
+    echo "WARNING see https://juicefs.com/console/create                         "
+    echo "WARNING the token must be set as environment variable                  "
+    echo "///////////////////////////////////////////////////////////////////////"
+    echo
+}
 
-InitFuseBenchmark ${NAME}
+
+PrintWarning
+InitFuseBenchmark juicefs
 InstallJuiceFs
 AuthorizeJuiceFs
 RunFuseTest ${TEST_DIR}
 RemoveBucket juicefs-${BUCKET_NAME}
-TerminateFuseBenchmark ${NAME}
+TerminateFuseBenchmark juicefs
 
 
 

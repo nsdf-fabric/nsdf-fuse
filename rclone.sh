@@ -1,7 +1,6 @@
 #!/bin/bash
 set -e # exit when any command fails
 source ./fuse_test.sh
-NAME=$(basename "$0" .sh)
 
 # /////////////////////////////////////////////////////////////////
 function InstallRClone() {
@@ -38,12 +37,12 @@ function FuseUp() {
 }
 
 
-InitFuseBenchmark ${NAME}
+InitFuseBenchmark rclone-test
 InstallRClone
 CreateCredentials
 CreateBucket ${BUCKET_NAME}
 RunFuseTest ${TEST_DIR}    
 RemoveBucket ${BUCKET_NAME} 
-TerminateFuseBenchmark  ${NAME}
+TerminateFuseBenchmark  rclone-test
 rm -f ./rclone.conf
 

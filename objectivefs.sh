@@ -1,7 +1,6 @@
 #!/bin/bash
 set -e # exit when any command fails
 source ./fuse_test.sh
-NAME=$(basename "$0" .sh)
 
 CHECK OBJECTIVEFS_LICENSE
 
@@ -53,11 +52,11 @@ function FuseUp() {
     sudo chmod 777 -R ${BASE_DIR} 
 }
 
-InitFuseBenchmark ${NAME}
+InitFuseBenchmark objectivefs
 InstallObjectiveFs
 CreateCredentials
 CreateBucket
 RunFuseTest ${TEST_DIR}  
 RemoveBucket ${BUCKET_NAME}  
-TerminateFuseBenchmark ${NAME}
+TerminateFuseBenchmark objectivefs
 rm -f /tmp/ofs_create_bucket.sh

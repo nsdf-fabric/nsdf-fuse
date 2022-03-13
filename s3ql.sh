@@ -1,7 +1,6 @@
 #!/bin/bash
 set -e # exit when any command fails
 source ./fuse_test.sh
-NAME=$(basename "$0" .sh)
 
 # /////////////////////////////////////////////////////////////////
 function InstallS3QL() {
@@ -56,12 +55,12 @@ function FuseUp() {
     mount | grep ${TEST_DIR}
 }
 
-InitFuseBenchmark ${NAME}
+InitFuseBenchmark s3ql
 InstallS3QL
 CreateCredentials
 CreateBucket ${BUCKET_NAME}
 RunFuseTest ${TEST_DIR}  
 RemoveBucket ${BUCKET_NAME} 
-TerminateFuseBenchmark ${NAME}
+TerminateFuseBenchmark s3ql
 rm -f ${HOME}/.s3ql/authinfo2
 
