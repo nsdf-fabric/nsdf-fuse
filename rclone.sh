@@ -31,8 +31,8 @@ function FuseUp() {
     --vfs-cache-mode minimal \
     --uid $UID \
     --daemon
-  echo "rclone daemon started"
   mount | grep ${TEST_DIR}
+  echo "rclone daemon started"
 }
 
 BUCKET_NAME=nsdf-fuse-rclone
