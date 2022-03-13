@@ -14,21 +14,6 @@ echo "///////////////////////////////////////////////////////////////////////"
 
 export JUICE_TOKEN=${JUICE_TOKEN:-XXXXX}
 
-# install juicefs
-if [[ ! -f /usr/bin/juicefs ]] ; then
-    wget -q https://juicefs.com/static/juicefs
-    chmod +x juicefs 
-    sudo mv juicefs /usr/bin
-fi
-
-# create the bucket if necessary
-aws s3 mb s3://${BUCKET_NAME} --region ${AWS_DEFAULT_REGION} 
-
-juicefs auth \
-    ${BUCKET_NAME} \
-    --token ${JUICE_TOKEN} \
-    --accesskey ${AWS_ACCESS_KEY_ID} \
-    --secretkey ${AWS_SECRET_ACCESS_KEY} 
 
 function FuseUp() {
     # TODO: make sure juicefs is not using RAM cache
@@ -48,6 +33,23 @@ function FuseDown() {
     rm -Rf ${CACHE_DIR}/* 
     rm -Rf ${TEST_DIR}/*
 }
+
+# install juicefs
+if [[ ! -f /usr/bin/juicefs ]] ; then
+    wget -q https://juicefs.com/static/juicefs
+    chmod +x juicefs 
+    sudo mv juicefs /usr/bin
+fi
+
+# create the bucket if necessary
+aws s3 mb s3://${BUCKET_NAME} --region ${AWS_DEFAULT_REGION} 
+
+juicefs auth \
+    ${BUCKET_NAME} \
+    --token ${JUICE_TOKEN} \
+    --accesskey ${AWS_ACCESS_KEY_ID} \
+    --secretkey ${AWS_SECRET_ACCESS_KEY} 
+
 
 RunDiskTest ${TEST_DIR}    
 
