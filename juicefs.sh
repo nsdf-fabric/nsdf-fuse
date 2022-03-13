@@ -2,8 +2,6 @@
 set -e # exit when any command fails
 source ./fuse_test.sh
 
-CHECK JUICE_TOKEN
-
 # /////////////////////////////////////////////////////////////////
 function InstallJuiceFs() {
     if [[ ! -f /usr/bin/juicefs ]] ; then
@@ -50,13 +48,17 @@ function PrintWarning() {
     echo
 }
 
-BUCKET_NAME=nsdf-fuse-juicefs
+# NOTE: when you remove a file rm $TEST_DIR/* it will take some time for JuiceFs to do the real removal
+# NOTE:  the real S3 name is juicefs-${BUCKET_NAME}
+CHECK JUICE_TOKEN
+BUCKET_NAME=nsdf-fuse-test-juicefs
 PrintWarning
 InitFuseBenchmark 
 InstallJuiceFs
 AuthorizeJuiceFs
+aws s3 ls
 RunFuseTest 
-RemoveBucket 
+aws s3 rb --force s3://juicefs-${BUCKET_NAME} # vs RemoveBucket
 TerminateFuseBenchmark
 
 
