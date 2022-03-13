@@ -4,10 +4,12 @@ source ./fuse_test.sh
 
 # /////////////////////////////////////////////////////////////////
 function InstallGeeseFs() {
-    if [[ ! -f /usr/bin/geesefs ]] ; then
+    if [[ ! -f $HOME/bin/geesefs ]] ; then
         wget https://github.com/yandex-cloud/geesefs/releases/latest/download/geesefs-linux-amd64
-        sudo mv geesefs-linux-amd64 /usr/bin/geesefs
-        chmod a+x /usr/bin/geesefs
+        mkdir -p $HOME/bin
+        export PATH=$PATH:$HOME/bin
+        mv geesefs-linux-amd64 $HOME/bin/geesefs
+        chmod a+x $HOME/bin/geesefs
     fi
 }
 

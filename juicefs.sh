@@ -58,7 +58,7 @@ InstallJuiceFs
 AuthorizeJuiceFs
 aws s3 ls
 RunFuseTest 
-aws s3 rb --force s3://juicefs-${BUCKET_NAME} # vs RemoveBucket
+aws s3 rb --force s3://juicefs-${BUCKET_NAME} # vs RemoveBucket TODO: is it safe?
 TerminateFuseBenchmark
 
 
