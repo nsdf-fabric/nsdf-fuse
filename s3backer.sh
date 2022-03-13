@@ -51,7 +51,7 @@ function MountLoopBack() {
 }
 
 # /////////////////////////////////////////////////////////////////
-fuction FormatBackend() {
+function FormatBackend() {
     echo "Formatting s3 backend..."
     MountBackend
     mkfs.ext4 -E nodiscard -F ${CACHE_DIR}/backend/file
