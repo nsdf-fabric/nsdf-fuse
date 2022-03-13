@@ -87,7 +87,7 @@ function FuseDown() {
     umount ${TEST_DIR}    
     rm -Rf ${CACHE_DIR}/* 
     rm -Rf ${TEST_DIR}/*
-    mount | grep ${TEST_DIR}
+    
     echo "FuseDown TEST_DIR=${TEST_DIR} done"
 }
 
@@ -145,7 +145,7 @@ function RunFioTest() {
         --disk_util=0 \
         --group_reporting \
         --ramp_time=2s \
-        --direct=1 || true # i have spurious error so I am ignoring errors here
+        --direct=1
     
     FuseDown
     echo "Test [$1] done"
