@@ -56,12 +56,12 @@ function FuseUp() {
 }
 
 BUCKET_NAME=nsdf-fuse-s3ql
-InitFuseBenchmark
+InitFuseTest
 InstallS3QL
 CreateCredentials
 CreateBucket 
 RunFuseTest 
 RemoveBucket 
-TerminateFuseBenchmark
+TerminateFuseTest
 rm -f ${HOME}/.s3ql/authinfo2
 

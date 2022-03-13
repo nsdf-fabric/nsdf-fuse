@@ -78,11 +78,11 @@ function CleanBucket() {
 BUCKET_NAME=nsdf-fuse-objectivefs
 CHECK OBJECTIVEFS_LICENSE
 OBJECTIVEFS_PASSPHRASE=${OBJECTIVEFS_LICENSE}
-InitFuseBenchmark 
+InitFuseTest 
 InstallObjectiveFs
 CreateCredentials
 CreateBucket 
 RunFuseTest
 RemoveBucket
-TerminateFuseBenchmark 
+TerminateFuseTest 
 sudo rm -Rf /etc/objectivefs.env/*

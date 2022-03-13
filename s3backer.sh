@@ -9,8 +9,8 @@ function InstallS3Backer() {
 }
 
 # /////////////////////////////////////////////////////////////////
-function CreateBackend() 
-{
+function MountBackend() {
+
     # Explanation:
     #   Linux loop back mount
     #   s3backer <---> remote S3 storage
@@ -25,10 +25,9 @@ function CreateBackend()
     BLOCK_CACHE_FILE=${CACHE_DIR}/blocks   
 
     # directory that sync with S3 (note: it's a virtual directory)
-    S3_BACKEND_DIR=${CACHE_DIR}/backend_dir
-
-    mkdir -p ${S3_BACKEND_DIR}
-
+    BACKEND_DIR=${CACHE_DIR}/backend_dir
+    
+    mkdir -p ${BACKEND_DIR}
     s3backer --accessId=${AWS_ACCESS_KEY_ID} \
              --accessKey=${AWS_SECRET_ACCESS_KEY} \
              --blockCacheFile=${BLOCK_CACHE_FILE} \
@@ -40,30 +39,69 @@ function CreateBackend()
              -o default_permissions,allow_other \
              -o uid=$UID \
              ${BUCKET_NAME} \
-             ${S3_BACKEND_DIR}  
-
-    # create the virtual file system
-    mkfs.ext4 -E nodiscard -F ${S3_BACKEND_DIR}/file
-
+             ${BACKEND_DIR}  
+    
+    mount | grep ${CACHE_DIR}
 }
+
+# /////////////////////////////////////////////////////////////////
+function UMountBackend() {
+    umount ${BACKEND_DIR}
+}
+
+# /////////////////////////////////////////////////////////////////
+function MountLoopBack() {
+    mount -o loop \
+          -o discard \
+          -o default_permissions,allow_other \
+          -o uid=$UID \
+          ${BACKEND_DIR}/file \
+          ${TEST_DIR}
+}
+
+# /////////////////////////////////////////////////////////////////
+function UMountLoopBack() {
+    umount ${TEST_DIR}
+}
+
+# /////////////////////////////////////////////////////////////////
+function CreateBackend()  {
+    MountBackend 
+    mkfs.ext4 -E nodiscard -F ${BACKEND_DIR}/file
+    UMountBackend
+}
+
 # /////////////////////////////////////////////////////////////////
 function FuseUp(){
-    mount \
-        -o loop \
-        -o discard \
-        -o default_permissions,allow_other \
-        -o uid=$UID \
-        ${S3_BACKEND_DIR}/file \
-        ${TEST_DIR}
+    echo "FuseUp (s3backer)..."
+    MountBackend
+    MountLoopBack
     mount | grep ${TEST_DIR}
+    echo "FuseUp (s3backer) done"
+}
+
+# /////////////////////////////////////////////////////////////////
+function FuseDown() {
+    # overriding since I need to umount two file system
+    echo "FuseDown (s3backer)..."
+    CHECK TEST_DIR
+    CHECK CACHE_DIR
+    UMountLoopBack
+    UMountBackend
+    umount ${TEST_DIR} 
+    umount ${BACKEND_DIR}
+    rm -Rf ${CACHE_DIR}/* 
+    rm -Rf ${TEST_DIR}/*
+    echo "FuseDown (s3backer) done"
 }
 
 BUCKET_NAME=nsdf-fuse-s3backer
-InitFuseBenchmark 
+InitFuseTest 
+InstallS3Backer
 CreateBucket
 CreateBackend
 RunFuseTest  
 RemoveBucket 
-TerminateFuseBenchmark 
+TerminateFuseTest 
 
 

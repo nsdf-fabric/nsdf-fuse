@@ -1,9 +1,9 @@
 #!/bin/bash 
 
 # ///////////////////////////////////////////////////////////
-function InitFuseBenchmark() {
+function InitFuseTest() {
 
-    echo "InitFuseBenchmark..."
+    echo "InitFuseTest..."
 
     CHECK BUCKET_NAME
     
@@ -58,15 +58,15 @@ function InitFuseBenchmark() {
     mkdir     -p ${CACHE_DIR} || true
     mkdir     -p ${LOG_DIR}   || true
 
-    echo "InitFuseBenchmark done"
+    echo "InitFuseTest done"
 }
 
 # ///////////////////////////////////////////////////////////
-function TerminateFuseBenchmark() {
-    echo "TerminateFuseBenchmark..."
+function TerminateFuseTest() {
+    echo "TerminateFuseTest..."
     CHECK BUCKET_NAME
     rm -Rf ${BASE_DIR}
-    echo "TerminateFuseBenchmark done"
+    echo "TerminateFuseTest done"
 }
 
 

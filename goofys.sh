@@ -31,12 +31,13 @@ function FuseUp() {
 }
 
 BUCKET_NAME=nsdf-fuse-goofys
-InitFuseBenchmark 
+InitFuseTest 
 InstallGoofys
 EnableCaching
 CreateBucket 
 RunFuseTest 
 RemoveBucket 
-TerminateFuseBenchmark
+TerminateFuseTest
+
 
 

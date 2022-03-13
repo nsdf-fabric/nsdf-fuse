@@ -41,5 +41,5 @@ CreateCredentials
 CreateBucket
 RunFuseTest 
 RemoveBucket 
-TerminateFuseBenchmark
+TerminateFuseTest
 rm -f ${HOME}/.s3fs

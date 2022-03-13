@@ -42,12 +42,12 @@ function FuseUp() {
 
 BUCKET_NAME=nsdf-fuse-rclone
 RCLONE_CONFIG_FILE=$HOME/nsdf-test-rclone.conf
-InitFuseBenchmark 
+InitFuseTest 
 InstallRClone
 CreateCredentials
 CreateBucket
 RunFuseTest 
 RemoveBucket
-TerminateFuseBenchmark
+TerminateFuseTest
 rm -f $RCLONE_CONFIG_FILE
 

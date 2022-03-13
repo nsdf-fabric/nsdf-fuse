@@ -42,11 +42,11 @@ function FuseUp() {
 }
 
 BUCKET_NAME=nsdf-fuse-geesefs
-InitFuseBenchmark 
+InitFuseTest 
 InstallGeeseFs
 CreateBucket 
 CreateCredentials
 RunFuseTest 
 RemoveBucket 
-TerminateFuseBenchmark 
+TerminateFuseTest 
 rm -f ${HOME}/.aws/credentials
