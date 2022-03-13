@@ -30,17 +30,27 @@ juicefs auth \
     --accesskey ${AWS_ACCESS_KEY_ID} \
     --secretkey ${AWS_SECRET_ACCESS_KEY} 
 
-# TODO: make sure juicefs is not using RAM cache
-juicefs mount \
-    ${BUCKET_NAME} \
-    ${TEST_DIR} \
-    --log=${LOG_DIR}/log.log \
-    --max-uploads=150 \
-    --cache-dir=${CACHE_DIR} \
-    --cache-size=${DISK_CACHE_SIZE_MB}  
+function FuseUp() {
+    # TODO: make sure juicefs is not using RAM cache
+    juicefs mount \
+        ${BUCKET_NAME} \
+        ${TEST_DIR} \
+        --log=${LOG_DIR}/log.log \
+        --max-uploads=150 \
+        --cache-dir=${CACHE_DIR} \
+        --cache-size=${DISK_CACHE_SIZE_MB}  
+    mount | grep ${TEST_DIR} # to make sure it's mounted
+}
 
-CheckFuseMount juicefs
+function FuseDown() {
+    # unmount but keeping the remote data
+    umount ${TEST_DIR}    
+    rm -Rf ${CACHE_DIR}/* 
+    rm -Rf ${TEST_DIR}/*
+}
+
 RunDiskTest ${TEST_DIR}    
+
 TerminateFuseBenchmark juicefs
 
 

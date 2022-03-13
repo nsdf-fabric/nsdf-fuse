@@ -58,47 +58,13 @@ function InitFuseBenchmark() {
 }
 
 
-# ///////////////////////////////////////////////////////////
-function CheckFuseMount() {
-
-    NAME=$1
-
-    echo "CheckFuseMount ${NAME}..."
-    mount
-    echo "hello" > ${TEST_DIR}/first_file
-    aws s3api list-objects --bucket ${BUCKET_NAME} --region ${AWS_DEFAULT_REGION}    
-
-    
-    echo "CheckFuseMount ${NAME} done"  
-}
-
 
 # ///////////////////////////////////////////////////////////
 function TerminateFuseBenchmark() {
-
     NAME=$1
-
-    echo "TerminateFuseBenchmark ${NAME}..."
-
-    # by checking the disk utization I will be use the limit is satisfied
-    echo "Please check the cache size, should not be more than ${CACHE_SIZE_MB}"
-    du -hs ${CACHE_DIR}
-
-    # just to be extra sure the data is removed from cloud
-    # ths can fail
-    sudo rm -Rf   ${TEST_DIR}/* || true
-    sudo umount   ${TEST_DIR}
-    sudo rm -Rf   ${BASE_DIR}
-
-    # check there is no mount
-    mount
-
-    # destroy the bucket
-    aws s3 rb --force s3://${BUCKET_NAME} 
-    
-    echo "TerminateFuseBenchmark ${NAME} done"  
+    aws s3 rb --force s3://${BUCKET_NAME}  
+    rm -Rf ${BASE_DIR}
 }
-
 
 # ///////////////////////////////////////////////////////////
 function SudoWriteOneLineFile() {
