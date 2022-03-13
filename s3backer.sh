@@ -53,20 +53,17 @@ function FuseUp(){
     # need sudo here
     # Controls whether ext4 should issue discard/TRIM commands to the underlying block device 
     sudo mount -o loop -o discard ${CACHE_DIR}/backend/file ${TEST_DIR}
-    sudo mount | grep ${TEST_DIR}
-    sudo chmod a+rwX ${TEST_DIR}
+    mount | grep ${TEST_DIR}
+    sudo chmod a+rwX -R ${TEST_DIR}
 
     echo "FuseUp (s3backer) done"
 }
 
 # /////////////////////////////////////////////////////////////////
 function FuseDown() {
-    # overriding since I need to umount two file system
     echo "FuseDown (s3backer)..."
-    CHECK TEST_DIR
-    CHECK CACHE_DIR
     sudo umount ${TEST_DIR}
-    sudo umount ${CACHE_DIR}/backend
+    umount ${CACHE_DIR}/backend
     rm -Rf ${BASE_DIR}
     echo "FuseDown (s3backer) done"
 }
