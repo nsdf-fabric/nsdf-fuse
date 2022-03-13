@@ -55,7 +55,8 @@ function FormatBackend() {
 function UMountBackend() {
     echo "UMountBackend..."
     umount ${CACHE_DIR}/backend  
-    s3backer --reset-mounted-flag ]
+    # see https://manpages.ubuntu.com/manpages/jammy/man1/s3backer.1.html
+    s3backer --reset-mounted-flag \
         --accessId=${AWS_ACCESS_KEY_ID} \
         --accessKey=${AWS_SECRET_ACCESS_KEY} \
         --region=${AWS_DEFAULT_REGION} \
