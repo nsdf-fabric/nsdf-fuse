@@ -56,11 +56,11 @@ function UMountBackend() {
     echo "UMountBackend..."
     umount ${CACHE_DIR}/backend  
     # see https://manpages.ubuntu.com/manpages/jammy/man1/s3backer.1.html
-    s3backer --reset-mounted-flag \
-        --accessId=${AWS_ACCESS_KEY_ID} \
-        --accessKey=${AWS_SECRET_ACCESS_KEY} \
-        --region=${AWS_DEFAULT_REGION} \
-        ${BUCKET_NAME} 
+    s3backer --accessId=${AWS_ACCESS_KEY_ID} \
+             --accessKey=${AWS_SECRET_ACCESS_KEY} \
+             --region=${AWS_DEFAULT_REGION} \
+             --reset-mounted-flag \
+             ${BUCKET_NAME} 
     echo "UMountBackend done"  
 }
 
