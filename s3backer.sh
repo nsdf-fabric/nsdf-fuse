@@ -45,14 +45,6 @@ function MountBackend() {
     mount | grep ${CACHE_DIR}
 }
 
-# /////////////////////////////////////////////////////////////////
-function FormatBackend() {
-    echo "Formatting s3 backend..."
-    MountBackend
-    mkfs.ext4 -E nodiscard -F ${CACHE_DIR}/backend/file
-    UMountBackend
-    echo "s3 backend formatted"
-}
 
 # /////////////////////////////////////////////////////////////////
 function UMountBackend() {
@@ -77,6 +69,16 @@ function UMountLoopback() {
 }
 
 # /////////////////////////////////////////////////////////////////
+function FormatBackend() {
+    echo "Formatting s3 backend..."
+    MountBackend
+    mkfs.ext4 -E nodiscard -F ${CACHE_DIR}/backend/file
+    UMountBackend
+    echo "s3 backend formatted"
+}
+
+
+# /////////////////////////////////////////////////////////////////
 function FuseUp(){
     echo "FuseUp (s3backer)..."
     MountBackend
@@ -98,7 +100,8 @@ InitFuseTest
 InstallS3Backer
 CreateBucket
 FormatBackend
-RunFuseTest  
+sleep 5 # spurious errors
+RunFuseTest
 RemoveBucket 
 TerminateFuseTest 
 
