@@ -165,18 +165,18 @@ function RunFuseTest() {
     else
 
         # one sequential (tot-storage=filesize*numjobs=64G fuse-activity=size=64G)
-        RunFioWriteTest --name=one-seq-write   --rw=write --bs=4M --filesize=64G --numjobs=1     --size=64G
-        RunFioReadTest  --name=one-seq-read    --rw=read  --bs=4M --filesize=64G --numjobs=1     --size=64G
+        RunFioWriteTest --name=one-seq-write   --rw=write --bs=4M --filesize=64G --numjobs=1     --size=64G || true
+        RunFioReadTest  --name=one-seq-read    --rw=read  --bs=4M --filesize=64G --numjobs=1     --size=64G || true
         CleanBucket
 
         # multi sequential (tot-storage=filesize*numjobs=64G fuse-activity=size=64G)
-        RunFioWriteTest --name=multi-seq-write --rw=write --bs=4M  --filesize=1G  --numjobs=64   --size=64G
-        RunFioReadTest  --name=multi-seq-read  --rw=read  --bs=4M  --filesize=1G  --numjobs=64   --size=64G
+        RunFioWriteTest --name=multi-seq-write --rw=write --bs=4M  --filesize=1G  --numjobs=64   --size=64G || true
+        RunFioReadTest  --name=multi-seq-read  --rw=read  --bs=4M  --filesize=1G  --numjobs=64   --size=64G || true
         CleanBucket
 
         # rand test (tot-storage=filesize*numjobs=64G fuse-activity=numjobs*size=8G) (WEIRD: rand test use --size with a different meaning)
-        RunFioWriteTest --name=rand-write --rw=randwrite  --bs=64k  --filesize=2G --numjobs=32   --size=256M
-        RunFioReadTest  --name=rand-read  --rw=randread   --bs=64k  --filesize=2G --numjobs=32   --size=256M
+        RunFioWriteTest --name=rand-write --rw=randwrite  --bs=64k  --filesize=2G --numjobs=32   --size=256M || true
+        RunFioReadTest  --name=rand-read  --rw=randread   --bs=64k  --filesize=2G --numjobs=32   --size=256M || true
         CleanBucket
 
         # lot of writing small files (can take several minutes)
