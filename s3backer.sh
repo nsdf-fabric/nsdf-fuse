@@ -56,7 +56,7 @@ function FormatBackend() {
     echo "Formatting s3 backend..."
     MountBackend
     mkfs.ext4 -E nodiscard -F ${CACHE_DIR}/backend/file
-    UmountBackend
+    UMountBackend
     echo "s3 backend formatted"
 }
 
