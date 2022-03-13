@@ -94,7 +94,8 @@ function CreateBucket() {
     CHECK AWS_SECRET_ACCESS_KEY
     CHECK AWS_DEFAULT_REGION
     aws s3 mb s3://${BUCKET_NAME} --region ${AWS_DEFAULT_REGION} 
-    aws s3 ls 
+    echo "Check from the list you see your bucket"
+    aws s3 ls | grep ${BUCKET_NAME}
     echo "CreateBucker done"
 }
 
@@ -104,6 +105,7 @@ function RemoveBucket() {
     CHECK BUCKET_NAME
     # note it can take a while before I see the destruction
     aws s3 rb --force s3://${BUCKET_NAME}
+    echo "Check from the list you DO NOT see your bucket"
     aws s3 ls 
     echo "RemoveBucket done"
 }
