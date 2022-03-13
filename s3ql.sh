@@ -5,10 +5,13 @@ source ./fuse_test.sh
 # /////////////////////////////////////////////////////////////////
 function InstallS3QL() {
 
-    export DEBIAN_FRONTEND=noninteractive 
-    sudo apt install -y sqlite3 libsqlite3-dev pkg-config fuse3 libfuse3-dev
-    sudo pip3 install --upgrade pip
-    sudo pip3 install --upgrade pyfuse3 google-auth-oauthlib dugong apsw defusedxml trio
+    if [[ ! -f .S3QL.prerequisites.installed ]] ; then
+        export DEBIAN_FRONTEND=noninteractive 
+        sudo apt install -y sqlite3 libsqlite3-dev pkg-config fuse3 libfuse3-dev
+        sudo pip3 install --upgrade pip
+        sudo pip3 install --upgrade pyfuse3 google-auth-oauthlib dugong apsw defusedxml trio
+        touch .S3QL.prerequisites.installed
+    fi
 
     # https://www.brightbox.com/docs/guides/s3ql/
     if [[ ! -f /usr/local/bin/s3qlstat ]] ; then
@@ -28,9 +31,10 @@ function CreateCredentials() {
 
 cat << EOF > ~/.s3ql/authinfo2
 [s3]
-storage-url: s3://${BUCKET_NAME}
+storage-url: s3://${AWS_DEFAULT_REGION}/${BUCKET_NAME}
 backend-login: ${AWS_ACCESS_KEY_ID}
 backend-password: ${AWS_SECRET_ACCESS_KEY}
+fs-passphrase: my-passphrase
 EOF
     chmod 600 ~/.s3ql/authinfo2
 }
