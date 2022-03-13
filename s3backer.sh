@@ -22,7 +22,7 @@ function MountBackend() {
     #   s3backer <---> remote S3 storage
 
     # do `s3backer --help`` for all options
-    OVERALL_SIZE=1T                                                   # overall size, you should known in advance
+    OVERALL_SIZE=1T                                                   # overall size, you should known in advance (!!!)
     BLOCK_SIZE_MB=4                                                   # single block size
     NUM_BLOCK_TO_CACHE=$(( ${RAM_CACHE_SIZE_MB} / ${BLOCK_SIZE_MB} )) # number of blocks to cache
     NUM_THREADS=64                                                    # number of threads
@@ -53,7 +53,14 @@ function FormatBackend() {
 
 # /////////////////////////////////////////////////////////////////
 function UMountBackend() {
-    umount ${CACHE_DIR}/backend    
+    echo "UMountBackend..."
+    umount ${CACHE_DIR}/backend  
+    s3backer --reset-mounted-flag ]
+        --accessId=${AWS_ACCESS_KEY_ID} \
+        --accessKey=${AWS_SECRET_ACCESS_KEY} \
+        --region=${AWS_DEFAULT_REGION} \
+        ${BUCKET_NAME} 
+    echo "UMountBackend done"  
 }
 
 
