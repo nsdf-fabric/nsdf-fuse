@@ -72,18 +72,12 @@ function TerminateFuseBenchmark() {
 
 # ///////////////////////////////////////////////////////////
 function FuseDown() {
-
     echo "FuseDown..."
-
     CHECK TEST_DIR
     CHECK CACHE_DIR
-    CHECK TEST_DIR
-    
     umount ${TEST_DIR} 
-
     rm -Rf ${CACHE_DIR}/* 
     rm -Rf ${TEST_DIR}/*
-
     echo "FuseDown done"
 }
 

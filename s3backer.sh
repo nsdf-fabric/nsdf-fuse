@@ -9,39 +9,45 @@ function InstallS3Backer() {
 }
 
 # /////////////////////////////////////////////////////////////////
-function FuseUp(){
-
+function CreateBackend() 
+{
     # Explanation:
     #   Linux loop back mount
     #   s3backer <---> remote S3 storage
 
     # do `s3backer --help`` for all options
     OVERALL_SIZE=1T                                                   # overall size, you should known in advance
-    BLOCK_CACHE_FILE=${BASE_DIR}/blocks                               # where to store block informations
     BLOCK_SIZE_MB=4                                                   # single block size
     NUM_BLOCK_TO_CACHE=$(( ${RAM_CACHE_SIZE_MB} / ${BLOCK_SIZE_MB} )) # number of blocks to cache
-    NUM_THREADS=32                                                    # number of threads
+    NUM_THREADS=64          
+                                              # number of threads
+    # where to cache/store block informations
+    BLOCK_CACHE_FILE=${CACHE_DIR}/blocks   
 
-    S3_BACKEND_DIR=${BASE_DIR}/s3_backend
+    # directory that sync with S3 (note: it's a virtual directory)
+    S3_BACKEND_DIR=${CACHE_DIR}/backend_dir
+
     mkdir -p ${S3_BACKEND_DIR}
 
-    s3backer \
-        --accessId=${AWS_ACCESS_KEY_ID} \
-        --accessKey=${AWS_SECRET_ACCESS_KEY} \
-        --blockCacheFile=${BLOCK_CACHE_FILE} \
-        --blockSize=${BLOCK_SIZE_MB}M \
-        --size=${OVERALL_SIZE} \
-        --region=${AWS_DEFAULT_REGION} \
-        --blockCacheSize=${NUM_BLOCK_TO_CACHE} \
-        --blockCacheThreads=${NUM_THREADS} \
-        -o default_permissions,allow_other \
-        -o uid=$UID \
-        ${BUCKET_NAME} \
-        ${S3_BACKEND_DIR}  
+    s3backer --accessId=${AWS_ACCESS_KEY_ID} \
+             --accessKey=${AWS_SECRET_ACCESS_KEY} \
+             --blockCacheFile=${BLOCK_CACHE_FILE} \
+             --blockSize=${BLOCK_SIZE_MB}M \
+             --size=${OVERALL_SIZE} \
+             --region=${AWS_DEFAULT_REGION} \
+             --blockCacheSize=${NUM_BLOCK_TO_CACHE} \
+             --blockCacheThreads=${NUM_THREADS} \
+             -o default_permissions,allow_other \
+             -o uid=$UID \
+             ${BUCKET_NAME} \
+             ${S3_BACKEND_DIR}  
 
-
+    # create the virtual file system
     mkfs.ext4 -E nodiscard -F ${S3_BACKEND_DIR}/file
 
+}
+# /////////////////////////////////////////////////////////////////
+function FuseUp(){
     mount \
         -o loop \
         -o discard \
@@ -54,7 +60,8 @@ function FuseUp(){
 
 BUCKET_NAME=nsdf-fuse-s3backer
 InitFuseBenchmark 
-ofs_create_bucket
+CreateBucket
+CreateBackend
 RunFuseTest  
 RemoveBucket 
 TerminateFuseBenchmark 
