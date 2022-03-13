@@ -30,7 +30,7 @@ function CreateCredentials() {
     mkdir -p ${HOME}/.s3ql/
 
 cat << EOF > ~/.s3ql/authinfo2
-[s3]
+[s3-test]
 storage-url: s3://${AWS_DEFAULT_REGION}/${BUCKET_NAME}
 backend-login: ${AWS_ACCESS_KEY_ID}
 backend-password: ${AWS_SECRET_ACCESS_KEY}
