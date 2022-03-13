@@ -35,7 +35,7 @@ function FuseUp(){
              ${BUCKET_NAME} \
              ${CACHE_DIR}/backend  
 
-     mount | grep ${CACHE_DIR}
+    mount | grep ${CACHE_DIR}
 
     if [[ ! -f ${BASE_DIR}/s3_backer_backend_formatted ]] ; then
         echo "Formatting s3 backend..."
@@ -44,11 +44,11 @@ function FuseUp(){
         echo "s3 backend formatted"
     fi
 
-    mount -o loop \
-          -o discard \
-          ${CACHE_DIR}/backend/file \
-          ${TEST_DIR}
-    mount | grep ${TEST_DIR}
+    # Controls whether ext4 should issue discard/TRIM commands to the underlying block device 
+    sudo mount -o loop -o discard ${CACHE_DIR}/backend/file ${TEST_DIR}
+    sudo mount | grep ${TEST_DIR}
+    sudo chmod a+rwX ${TEST_DIR}
+
     echo "FuseUp (s3backer) done"
 }
 
@@ -58,7 +58,7 @@ function FuseDown() {
     echo "FuseDown (s3backer)..."
     CHECK TEST_DIR
     CHECK CACHE_DIR
-    umount ${TEST_DIR}
+    sudo umount ${TEST_DIR}
     umount ${CACHE_DIR}/backend
     rm -Rf ${CACHE_DIR}/* 
     rm -Rf ${TEST_DIR}/*
