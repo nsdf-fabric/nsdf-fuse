@@ -26,12 +26,13 @@ function InstallS3QL() {
 function CreateCredentials() {
     mkdir -p ${HOME}/.s3ql/
 
-cat << EOF > ${HOME}/.s3ql/authinfo2
-[default]
+cat << EOF > ~/.s3ql/authinfo2
+[s3]
+storage-url: s3://${BUCKET_NAME}
 backend-login: ${AWS_ACCESS_KEY_ID}
 backend-password: ${AWS_SECRET_ACCESS_KEY}
 EOF
-    chmod 600 ${HOME}/.s3ql/authinfo2
+    chmod 600 ~/.s3ql/authinfo2
 }
 
 # /////////////////////////////////////////////////////////////////
@@ -47,14 +48,12 @@ function FormatBucket() {
 
     # create the bucket
     # https://www.rath.org/s3ql-docs/man/mkfs.html
-    mkfs.s3ql  \
+    mkfs.s3ql \
+        s3://${AWS_DEFAULT_REGION}/${BUCKET_NAME} \
         --cachedir ${CACHE_DIR} \
         --log ${LOG_DIR}/log \
-        --authfile ${HOME}/.s3ql/authinfo2 \
-        --plain \
-        s3://${AWS_DEFAULT_REGION}/${BUCKET_NAME}
+        --cachesize $(( ${DISK_CACHE_SIZE_MB} * 1024 ))
 
-    
     echo "FormatBucket (done)..."
 }
 
@@ -72,10 +71,11 @@ function FuseUp() {
     # mount it
     # https://www.rath.org/s3ql-docs/man/mount.html
     # TODO: disable RAM cache
-    mount.s3ql s3://${AWS_DEFAULT_REGION}/${BUCKET_NAME} ${TEST_DIR} \
+    mount.s3ql \
+        s3://${AWS_DEFAULT_REGION}/${BUCKET_NAME} \
+        ${TEST_DIR} \
         --cachedir ${CACHE_DIR} \
         --log ${LOG_DIR}/log \
-        --authfile ${HOME}/.s3ql/authinfo2 \
         --cachesize $(( ${DISK_CACHE_SIZE_MB} * 1024 ))
 
     mount | grep ${TEST_DIR}
