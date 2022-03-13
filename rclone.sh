@@ -30,7 +30,7 @@ function FuseUp() {
     --cache-dir ${CACHE_DIR} \
     --vfs-cache-mode minimal \
     --uid $UID \
-    --daemon
+    --daemon || true # returns a non zero value
   mount | grep ${TEST_DIR}
 }
 
