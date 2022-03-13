@@ -56,27 +56,12 @@ function FuseUp() {
     sudo chmod a+rwX -R ${BASE_DIR} 
 }
 
-# ///////////////////////////////////////////////////////////
-# overriding because I need to use sudo
-function FuseDown() {
-
-    echo "FuseDown..."
-
-    CHECK TEST_DIR
-    CHECK CACHE_DIR
-    CHECK TEST_DIR
-    # unmount but keeping the remote data
-    sudo umount ${TEST_DIR}    
-    rm -Rf ${CACHE_DIR}/* 
-    rm -Rf ${TEST_DIR}/*
-
-    echo "FuseDown done"
-}
 
 
 BUCKET_NAME=nsdf-fuse-objectivefs
 CHECK OBJECTIVEFS_LICENSE
 OBJECTIVEFS_PASSPHRASE=${OBJECTIVEFS_LICENSE}
+UMOUNT_NEED_SUDO=1
 InitFuseBenchmark 
 InstallObjectiveFs
 CreateCredentials

@@ -78,8 +78,14 @@ function FuseDown() {
     CHECK TEST_DIR
     CHECK CACHE_DIR
     CHECK TEST_DIR
+    
     # unmount but keeping the remote data
-    umount ${TEST_DIR}    
+    if [[ "${UMOUNT_NEED_SUDO}" == "1" ]] ; then
+        sudo umount ${TEST_DIR}
+    else
+        umount ${TEST_DIR} 
+    fi
+
     rm -Rf ${CACHE_DIR}/* 
     rm -Rf ${TEST_DIR}/*
 
