@@ -43,6 +43,21 @@ function MountBackend() {
 }
 
 # /////////////////////////////////////////////////////////////////
+function FormatBackend() {
+    echo "Formatting s3 backend..."
+    MountBackend
+    mkfs.ext4 -E nodiscard -F ${CACHE_DIR}/backend/file
+    UMountBackend
+    echo "s3 backend formatted"
+}
+
+# /////////////////////////////////////////////////////////////////
+function UMountBackend() {
+    umount ${CACHE_DIR}/backend    
+}
+
+
+# /////////////////////////////////////////////////////////////////
 function MountLoopBack() {
     # need sudo here
     # Controls whether ext4 should issue discard/TRIM commands to the underlying block device 
@@ -52,25 +67,9 @@ function MountLoopBack() {
 }
 
 # /////////////////////////////////////////////////////////////////
-function FormatBackend() {
-    echo "Formatting s3 backend..."
-    MountBackend
-    mkfs.ext4 -E nodiscard -F ${CACHE_DIR}/backend/file
-    UMountBackend
-    echo "s3 backend formatted"
-}
-
-
-# /////////////////////////////////////////////////////////////////
 function UMountLoopback() {
     sudo umount ${TEST_DIR}
 }
-
-# /////////////////////////////////////////////////////////////////
-function UMountBackend() {
-    umount ${CACHE_DIR}/backend    
-}
-
 
 # /////////////////////////////////////////////////////////////////
 function FuseUp(){
