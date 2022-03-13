@@ -7,9 +7,8 @@ function InstallS3QL() {
 
     if [[ ! -f .S3QL.prerequisites.installed ]] ; then
         export DEBIAN_FRONTEND=noninteractive 
-        sudo apt remove fuse libfuse-dev
-        sudo apt install -y sqlite3 libsqlite3-dev pkg-config 
-        sudo apt install -y fuse3 libfuse3-dev
+        sudo apt remove fuse libfuse-dev || true # fuse and fuse 3 not compatible
+        sudo apt install -y sqlite3 libsqlite3-dev pkg-config fuse3 libfuse3-dev
         sudo pip3 install --upgrade pip
         sudo pip3 install --upgrade pyfuse3 google-auth-oauthlib dugong apsw defusedxml trio
         touch .S3QL.prerequisites.installed
