@@ -77,16 +77,18 @@ function TerminateFuseBenchmark() {
 
 # ///////////////////////////////////////////////////////////
 function FuseDown() {
+
     CHECK TEST_DIR
     CHECK CACHE_DIR
     CHECK TEST_DIR
 
-    echo "FuseDown"
+    echo "FuseDown TEST_DIR=${TEST_DIR}..."
     # unmount but keeping the remote data
     umount ${TEST_DIR}    
     rm -Rf ${CACHE_DIR}/* 
     rm -Rf ${TEST_DIR}/*
     mount | grep ${TEST_DIR}
+    echo "FuseDown TEST_DIR=${TEST_DIR} done"
 }
 
 # ///////////////////////////////////////////////////////////
@@ -167,9 +169,11 @@ function RunFioReadTest() {
 
 # /////////////////////////////////////////////////////
 function CleanBucket() {
+    echo "CleanBucket TEST_DIR=${TEST_DIR}..."
     FuseUp 
     rm -Rf ${TEST_DIR}/* 
     FuseDown
+    echo "CleanBucket TEST_DIR=${TEST_DIR} done"
 }
 
 # /////////////////////////////////////////////////////
