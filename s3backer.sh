@@ -30,7 +30,9 @@ function MountBackend() {
     mkdir -p ${CACHE_DIR}/backend
 
     # adding force because I have problems
-    s3backer --accessId=${AWS_ACCESS_KEY_ID} \
+    # but it's very very dangerous
+    for i in 1 2 3 4 5; do 
+        s3backer --accessId=${AWS_ACCESS_KEY_ID} \
              --accessKey=${AWS_SECRET_ACCESS_KEY} \
              --blockCacheFile=${CACHE_DIR}/block_cache_file \
              --blockSize=${BLOCK_SIZE_MB}M \
@@ -38,9 +40,11 @@ function MountBackend() {
              --region=${AWS_DEFAULT_REGION} \
              --blockCacheSize=${NUM_BLOCK_TO_CACHE} \
              --blockCacheThreads=${NUM_THREADS} \
-             --force \
              ${BUCKET_NAME} \
-             ${CACHE_DIR}/backend  
+             ${CACHE_DIR}/backend  && break
+        sleep 2
+     done
+    
 
     mount | grep ${CACHE_DIR}
 }
@@ -50,6 +54,7 @@ function MountBackend() {
 function UMountBackend() {
     echo "UMountBackend..."
     umount ${CACHE_DIR}/backend  
+    sleep 1
     echo "UMountBackend done"  
 }
 
