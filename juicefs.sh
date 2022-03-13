@@ -32,6 +32,7 @@ juicefs auth \
 
 function FuseUp() {
     # TODO: make sure juicefs is not using RAM cache
+    echo "FuseUp"
     juicefs mount \
         ${BUCKET_NAME} \
         ${TEST_DIR} \
