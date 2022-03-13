@@ -32,14 +32,18 @@ send -- "${OBJECTIVEFS_PASSPHRASE}\r"
 expect eof
 EOF
 
+    echo "Creating bucket ${BUCKET_NAME}..."
     sudo chmod 700 create_bucket.sh
     sudo ./create_bucket.sh
     rm create_bucket.sh
     sudo chmod a+rwX -R ${TEST_DIR}
+    echo "${BUCKET_NAME} creation done"
 }
 
 # /////////////////////////////////////////////////////////////////
 function FuseUp() {
+
+    echo "FuseUp (objectivefs)..."
 
     # create and share the directory
     mkdir     -p ${BASE_DIR}  || true
@@ -58,11 +62,12 @@ function FuseUp() {
         ${TEST_DIR}
     sudo mount | grep ${TEST_DIR}
     sudo chmod a+rwX -R ${TEST_DIR}
+    
+    echo "FuseUp (objectivefs) done"
 }
 
 # ///////////////////////////////////////////////////////////
 function FuseDown() {
-    # override since i need sudo
     echo "FuseDown (objectivefs)..."
     CHECK TEST_DIR
     CHECK CACHE_DIR
