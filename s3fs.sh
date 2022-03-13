@@ -16,6 +16,8 @@ function CreateCredentials() {
 # /////////////////////////////////////////////////////////////////
 function FuseUp() {
 
+    echo "FuseUp (s3fs)..."
+
     # create and share the directory
     mkdir     -p ${BASE_DIR}  || true
     mkdir     -p ${TEST_DIR}  || true
@@ -40,19 +42,20 @@ function FuseUp() {
         -o multireq_max=30 \
         -o allow_other 
     mount | grep ${TEST_DIR}  
+
+    echo "FuseUp (s3fs) done"    
 }
 
 
 # ///////////////////////////////////////////////////////////
 function FuseDown() {
-    # override since i need sudo
-    echo "FuseDown (objectivefs)..."
+    echo "FuseDown (s3fs)..."
     CHECK TEST_DIR
     CHECK CACHE_DIR
     CHECK TEST_DIR
-    sudo umount ${TEST_DIR}
+    umount ${TEST_DIR}
     rm -Rf ${BASE_DIR}
-    echo "FuseDown (objectivefs) done"
+    echo "FuseDown (s3fs) done"
 }
 
 BUCKET_NAME=nsdf-fuse-s3fs

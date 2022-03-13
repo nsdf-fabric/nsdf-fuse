@@ -29,8 +29,8 @@ function MountBackend() {
 
     mkdir -p ${CACHE_DIR}/backend
 
-    # adding force because I have problems
-    # but it's very very dangerous
+    # sometimes I need to wait for the backend to release resources
+    # I think is related to some writing operation delayed
     for i in 1 2 3 4 5; do 
         s3backer --accessId=${AWS_ACCESS_KEY_ID} \
              --accessKey=${AWS_SECRET_ACCESS_KEY} \
