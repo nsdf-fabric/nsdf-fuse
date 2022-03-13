@@ -51,7 +51,6 @@ echo "///////////////////////////////////////////////////////////////////////"
 InitFuseBenchmark ${NAME}
 InstallJuiceFs
 AuthorizeJuiceFs
-CreateBucket juicefs-${BUCKET_NAME}
 RunFuseTest ${TEST_DIR}
 RemoveBucket juicefs-${BUCKET_NAME}
 TerminateFuseBenchmark ${NAME}
