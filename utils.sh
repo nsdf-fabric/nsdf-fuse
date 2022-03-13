@@ -72,3 +72,14 @@ function FuseDown() {
 function SudoWriteOneLineFile() {
     sudo bash -c "echo $2 > $1"
 }
+
+# ///////////////////////////////////////////////////////////
+function CHECK_ENV() { 
+  name=${!1};
+  if [[ "${!1}" == "" ]] ; then 
+    echo "ERROR \$$1 is empty"
+    # exit 1 
+  fi
+}
+
+
