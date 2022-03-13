@@ -42,7 +42,7 @@ function MountBackend() {
              --blockCacheThreads=${NUM_THREADS} \
              ${BUCKET_NAME} \
              ${CACHE_DIR}/backend  && break
-        sleep 2
+        sleep 1
      done
     
 
@@ -53,8 +53,7 @@ function MountBackend() {
 # /////////////////////////////////////////////////////////////////
 function UMountBackend() {
     echo "UMountBackend..."
-    umount ${CACHE_DIR}/backend  
-    sleep 1
+    umount ${CACHE_DIR}/backend
     echo "UMountBackend done"  
 }
 
@@ -105,7 +104,6 @@ InitFuseTest
 InstallS3Backer
 CreateBucket
 FormatBackend
-sleep 5 # spurious errors
 RunFuseTest
 RemoveBucket 
 TerminateFuseTest 
