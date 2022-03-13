@@ -31,4 +31,8 @@ function FuseUp() {
 }
 
 RunDiskTest ${TEST_DIR}  
+
+aws s3 rb --force s3://${BUCKET_NAME}  
+rm -Rf ${BASE_DIR}
+
 TerminateFuseBenchmark goofys

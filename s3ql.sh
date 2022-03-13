@@ -55,6 +55,9 @@ function FuseUp() {
 }
 
 RunDiskTest ${TEST_DIR}  
-TerminateFuseBenchmark s3ql
+
+aws s3 rb --force s3://${BUCKET_NAME}  
+rm -Rf ${BASE_DIR}
+
 rm -f ${HOME}/.s3ql/authinfo2
 

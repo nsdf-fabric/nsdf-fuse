@@ -38,6 +38,9 @@ function FuseUp() {
 }
 
 RunDiskTest ${TEST_DIR}    
-TerminateFuseBenchmark rclone
+
+aws s3 rb --force s3://${BUCKET_NAME}  
+rm -Rf ${BASE_DIR}
+
 rm -f ./rclone.conf
 

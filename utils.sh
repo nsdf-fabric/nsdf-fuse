@@ -63,15 +63,9 @@ function FuseDown() {
     umount ${TEST_DIR}    
     rm -Rf ${CACHE_DIR}/* 
     rm -Rf ${TEST_DIR}/*
+    mount | grep ${TEST_DIR}
 }
 
-
-# ///////////////////////////////////////////////////////////
-function TerminateFuseBenchmark() {
-    NAME=$1
-    aws s3 rb --force s3://${BUCKET_NAME}  
-    rm -Rf ${BASE_DIR}
-}
 
 # ///////////////////////////////////////////////////////////
 function SudoWriteOneLineFile() {

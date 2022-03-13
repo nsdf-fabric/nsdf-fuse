@@ -5,6 +5,7 @@ source ./utils.sh
 source ./disk.sh
 InitFuseBenchmark juicefs
 
+
 echo "///////////////////////////////////////////////////////////////////////"
 echo "WARNING the JuiceFs file system must have been created in juicefs      "
 echo "WARNING the File system to create must have a name nsdf-test-juicefs   "
@@ -20,10 +21,9 @@ if [[ ! -f /usr/bin/juicefs ]] ; then
     chmod +x juicefs 
     sudo mv juicefs /usr/bin
 fi
+echo $(which juicefs)
 
-# create the bucket if necessary
-aws s3 mb s3://${BUCKET_NAME} --region ${AWS_DEFAULT_REGION} 
-
+# IMPORTANT: internally the real bucket name will be juicefs-${BUCKET_NAME}
 juicefs auth \
     ${BUCKET_NAME} \
     --token ${JUICE_TOKEN} \
@@ -43,6 +43,9 @@ function FuseUp() {
 }
 
 RunDiskTest ${TEST_DIR}    
-TerminateFuseBenchmark juicefs
+
+aws s3 rb --force s3://juicefs-${BUCKET_NAME}  
+rm -Rf ${BASE_DIR}
+
 
 

@@ -41,6 +41,7 @@ function FuseUp(){
         ${BUCKET_NAME} \
         ${S3_BACKEND_DIR}  
 
+
     mkfs.ext4 -E nodiscard -F ${S3_BACKEND_DIR}/file
 
     mount \
@@ -54,4 +55,7 @@ function FuseUp(){
 }
 
 RunDiskTest ${TEST_DIR}  
-TerminateFuseBenchmark s3backer
+
+aws s3 rb --force s3://${BUCKET_NAME}  
+rm -Rf ${BASE_DIR}
+

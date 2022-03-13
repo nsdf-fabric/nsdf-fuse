@@ -47,6 +47,9 @@ function FuseUp() {
 }
 
 RunDiskTest ${TEST_DIR}  
-TerminateFuseBenchmark objectivefs
+
+aws s3 rb --force s3://${BUCKET_NAME}  
+rm -Rf ${BASE_DIR}
+
 
 rm -f /tmp/ofs_create_bucket.sh
