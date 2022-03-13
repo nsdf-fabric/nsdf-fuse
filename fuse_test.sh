@@ -13,7 +13,8 @@ function InitFuseTest() {
 
     # update the system
     sudo apt -qq update
-    sudo apt -qq install -y nload expect python3 python3-pip fuse libfuse-dev awscli
+    sudo apt -qq install -y nload expect python3 python3-pip awscli
+    #sudo apt -qq install -y fuse libfuse-dev 
 
     # I need a recent version of fio
     if [[ ! -f ${HOME}/fio/fio_installed ]] ; then
