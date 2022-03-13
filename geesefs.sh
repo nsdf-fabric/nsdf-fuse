@@ -35,7 +35,8 @@ function FuseUp() {
         --part-sizes 25 \
         --log-file ${LOG_DIR}/log.txt \
         --endpoint https://s3.${AWS_DEFAULT_REGION}.amazonaws.com \
-        ${BUCKET_NAME} ${TEST_DIR}
+        ${BUCKET_NAME} ${TEST_DIR} || true # the command does not return 0 (weird)
+    echo "Check the following line is showing the mount"
     mount | grep ${TEST_DIR}
 }
 
