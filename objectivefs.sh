@@ -57,11 +57,31 @@ function FuseUp() {
     sudo chmod a+rwX -R ${TEST_DIR}
 }
 
+# ///////////////////////////////////////////////////////////
+function FuseDown() {
+    # override since i need sudo
+    echo "FuseDown (objectivefs)..."
+    CHECK TEST_DIR
+    CHECK CACHE_DIR
+    CHECK TEST_DIR
+    sudo umount ${TEST_DIR}
+    sudo rm -Rf ${CACHE_DIR}/* 
+    sudo rm -Rf ${TEST_DIR}/*
+    echo "FuseDown (objectivefs) done"
+}
+
+# /////////////////////////////////////////////////////
+function CleanBucket() {
+    echo "CleanBucket (objectivefs)..."
+    FuseUp 
+    sudo rm -Rf ${TEST_DIR}/* || true # override because I need to use sudo
+    FuseDown
+    echo "CleanBucket (objectivefs) done"
+}
 
 BUCKET_NAME=nsdf-fuse-objectivefs
 CHECK OBJECTIVEFS_LICENSE
 OBJECTIVEFS_PASSPHRASE=${OBJECTIVEFS_LICENSE}
-UMOUNT_NEED_SUDO=1
 InitFuseBenchmark 
 InstallObjectiveFs
 CreateCredentials
