@@ -75,12 +75,16 @@ function FuseUp() {
     # mount it
     # https://www.rath.org/s3ql-docs/man/mount.html
     # TODO: disable RAM cache
-    mount.s3ql \
-        s3://${AWS_DEFAULT_REGION}/${BUCKET_NAME} \
-        ${TEST_DIR} \
-        --cachedir ${CACHE_DIR} \
-        --log ${LOG_DIR}/log \
-        --cachesize $(( ${DISK_CACHE_SIZE_MB} * 1024 ))
+    for i in 1 2 3 4 5; do 
+        mount.s3ql \
+            s3://${AWS_DEFAULT_REGION}/${BUCKET_NAME} \
+            ${TEST_DIR} \
+            --cachedir ${CACHE_DIR} \
+            --log ${LOG_DIR}/log \
+            --cachesize $(( ${DISK_CACHE_SIZE_MB} * 1024 )) && break
+        sleep 1
+    done
+    
 
     mount | grep ${TEST_DIR}
 
