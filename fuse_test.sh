@@ -5,14 +5,14 @@ set -e # exit when any command fails
 # ///////////////////////////////////////////////////////////
 function InitFuseBenchmark() {
 
+    echo "InitFuseBenchmark ${1}..."
+
     NAME=$1
     CHECK NAME
-
+    
     CHECK AWS_ACCESS_KEY_ID
     CHECK AWS_SECRET_ACCESS_KEY
     CHECK AWS_DEFAULT_REGION
-
-    echo "InitFuseBenchmark ${NAME}..."
 
     # update the system
     sudo apt -qq update
@@ -66,10 +66,9 @@ function InitFuseBenchmark() {
 
 # ///////////////////////////////////////////////////////////
 function TerminateFuseBenchmark() {
-    
+    echo "TerminateFuseBenchmark ${1}..."
     NAME=$1
     CHECK NAME
-    echo "TerminateFuseBenchmark ${NAME}..."
     rm -Rf ${BASE_DIR}
     echo "TerminateFuseBenchmark ${NAME} done"
 }
@@ -78,40 +77,42 @@ function TerminateFuseBenchmark() {
 # ///////////////////////////////////////////////////////////
 function FuseDown() {
 
+    echo "FuseDown TEST_DIR=${TEST_DIR}..."
+
     CHECK TEST_DIR
     CHECK CACHE_DIR
     CHECK TEST_DIR
-
-    echo "FuseDown TEST_DIR=${TEST_DIR}..."
     # unmount but keeping the remote data
     umount ${TEST_DIR}    
     rm -Rf ${CACHE_DIR}/* 
     rm -Rf ${TEST_DIR}/*
-    
+
     echo "FuseDown TEST_DIR=${TEST_DIR} done"
 }
 
 # ///////////////////////////////////////////////////////////
 function CreateBucket() {
+    echo "CreateBucker $1..."
     NAME=$1
-    echo "CreateBucker ${NAME}"
-
     CHECK NAME
     CHECK AWS_ACCESS_KEY_ID
     CHECK AWS_SECRET_ACCESS_KEY
     CHECK AWS_DEFAULT_REGION
     aws s3 mb s3://${BUCKET_NAME} --region ${AWS_DEFAULT_REGION} 
+    echo "CreateBucker $1 done"
 }
 
 # ///////////////////////////////////////////////////////////
 function RemoveBucket() {
-    NAME=$1
-    echo "RemoveBucket ${NAME}"
+    echo "RemoveBucket $1..."
 
+    NAME=$1
     CHECK NAME
 
     # note it can take a while before I see the destruction
     aws s3 rb --force s3://$NAME
+
+    echo "RemoveBucket $1 done"
 }
 
 
