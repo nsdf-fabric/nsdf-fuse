@@ -40,19 +40,15 @@ EOF
 
 # /////////////////////////////////////////////////////////////////
 function FuseUp() {
-
     # see https://objectivefs.com/howto/performance-amazon-efs-vs-objectivefs-large-files
-    # cannot change log location
+    # cannot change log location ?
     export  DISKCACHE_SIZE=${DISK_CACHE_SIZE_MB}M
     export  DISKCACHE_PATH=${CACHE_DIR}
     export  CACHESIZE=${RAM_CACHE_SIZE_MB}
-
-    # see AWS_DEFAULT_REGION 
     sudo mount.objectivefs \
         -o mt \
         s3://${BUCKET_NAME} \
         ${TEST_DIR}
-
     sudo mount | grep ${TEST_DIR}
     sudo chmod a+rwX -R ${TEST_DIR}
 }
