@@ -5,9 +5,8 @@ set -e # exit when any command fails
 # ///////////////////////////////////////////////////////////
 function InitFuseBenchmark() {
 
-    echo "InitFuseBenchmark ${1}..."
+    echo "InitFuseBenchmark..."
 
-    BUCKET_NAME=$1
     CHECK BUCKET_NAME
     
     CHECK AWS_ACCESS_KEY_ID
@@ -61,16 +60,15 @@ function InitFuseBenchmark() {
     mkdir     -p ${CACHE_DIR} || true
     mkdir     -p ${LOG_DIR}   || true
 
-    echo "InitFuseBenchmark ${1} done"
+    echo "InitFuseBenchmark done"
 }
 
 # ///////////////////////////////////////////////////////////
 function TerminateFuseBenchmark() {
-    echo "TerminateFuseBenchmark ${1}..."
-    BUCKET_NAME=$1
+    echo "TerminateFuseBenchmark..."
     CHECK BUCKET_NAME
     rm -Rf ${BASE_DIR}
-    echo "TerminateFuseBenchmark ${1} done"
+    echo "TerminateFuseBenchmark done"
 }
 
 
@@ -92,24 +90,22 @@ function FuseDown() {
 
 # ///////////////////////////////////////////////////////////
 function CreateBucket() {
-    echo "CreateBucker $1..."
-    __bucket_name__=$1
-    CHECK __bucket_name__
+    echo "CreateBucker..."
+    CHECK BUCKET_NAME
     CHECK AWS_ACCESS_KEY_ID
     CHECK AWS_SECRET_ACCESS_KEY
     CHECK AWS_DEFAULT_REGION
-    aws s3 mb s3://${__bucket_name__} --region ${AWS_DEFAULT_REGION} 
-    echo "CreateBucker $1 done"
+    aws s3 mb s3://${BUCKET_NAME} --region ${AWS_DEFAULT_REGION} 
+    echo "CreateBuckerdone"
 }
 
 # ///////////////////////////////////////////////////////////
 function RemoveBucket() {
-    echo "RemoveBucket $1..."
-    __bucket_name__=$1
-    CHECK __buckt_name__
+    echo "RemoveBucket..."
+    CHECK BUCKET_NAME
     # note it can take a while before I see the destruction
-    aws s3 rb --force s3://${__bucket_name__}
-    echo "RemoveBucket $1 done"
+    aws s3 rb --force s3://${BUCKET_NAME}
+    echo "RemoveBucket done"
 }
 
 
@@ -120,7 +116,6 @@ function CHECK() {
     # exit 1 
   fi
 }
-
 
 # ///////////////////////////////////////////////////////////////
 function RunFioTest() {
@@ -166,17 +161,17 @@ function RunFioReadTest() {
 
 # /////////////////////////////////////////////////////
 function CleanBucket() {
-    echo "CleanBucket TEST_DIR=${TEST_DIR}..."
+    echo "CleanBucket..."
     FuseUp 
     rm -Rf ${TEST_DIR}/* 
     FuseDown
-    echo "CleanBucket TEST_DIR=${TEST_DIR} done"
+    echo "CleanBucket done"
 }
 
 # /////////////////////////////////////////////////////
 function RunFuseTest() {
 
-    TEST_DIR=${1:-/tmp/run-disk-test}
+    CHECK TEST_DIR
     
     echo "RunFuseTest TEST_DIR=${TEST_DIR}..."
 

@@ -30,11 +30,13 @@ function FuseUp() {
     mount | grep ${TEST_DIR}
 }
 
-InitFuseBenchmark goofys
+BUCKET_NAME=nsdf-fuse-goofys
+InitFuseBenchmark 
 InstallGoofys
 EnableCaching
-CreateBucket ${BUCKET_NAME}
-RunFuseTest ${TEST_DIR}  
-RemoveBucket ${BUCKET_NAME} 
-TerminatTerminateFuseBenchmarkeFuseBencmark goofys
+CreateBucket 
+RunFuseTest 
+RemoveBucket 
+TerminatTerminateFuseBenchmarkeFuseBencmark
+
 

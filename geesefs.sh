@@ -39,11 +39,12 @@ function FuseUp() {
     mount | grep ${TEST_DIR}
 }
 
-InitFuseBenchmark geesefs
+BUCKET_NAME=nsdf-fuse-geesefs
+InitFuseBenchmark 
 InstallGeeseFs
-CreateBucket ${BUCKET_NAME}
+CreateBucket 
 CreateCredentials
-RunFuseTest ${TEST_DIR}  
-RemoveBucket ${BUCKET_NAME}  
-TerminateFuseBenchmark geesefs
+RunFuseTest 
+RemoveBucket 
+TerminateFuseBenchmark 
 rm -f ${HOME}/.aws/credentials

@@ -52,11 +52,12 @@ function FuseUp() {
     sudo chmod 777 -R ${BASE_DIR} 
 }
 
-InitFuseBenchmark objectivefs
+BUCKET_NAME=nsdf-fuse-objectivefs
+InitFuseBenchmark 
 InstallObjectiveFs
 CreateCredentials
-CreateBucket
-RunFuseTest ${TEST_DIR}  
-RemoveBucket ${BUCKET_NAME}  
-TerminateFuseBenchmark objectivefs
+CreateBucket 
+RunFuseTest
+RemoveBucket
+TerminateFuseBenchmark 
 rm -f /tmp/ofs_create_bucket.sh

@@ -35,11 +35,11 @@ function FuseUp() {
     mount | grep ${TEST_DIR}  
 }
 
-InitFuseBenchmark s3fs
+BUCKET_NAME=nsdf-fuse-s3fs
 InstallS3Fs
 CreateCredentials
-CreateBucket ${BUCKET_NAME}
-RunFuseTest ${TEST_DIR}  
-RemoveBucket ${BUCKET_NAME}  
-TerminateFuseBenchmark s3fs
+CreateBucket
+RunFuseTest 
+RemoveBucket 
+TerminateFuseBenchmark
 rm -f ${HOME}/.s3fs

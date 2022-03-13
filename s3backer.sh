@@ -52,10 +52,11 @@ function FuseUp(){
     mount | grep ${TEST_DIR}
 }
 
+BUCKET_NAME=nsdf-fuse-s3backer
+InitFuseBenchmark 
+ofs_create_bucket
+RunFuseTest  
+RemoveBucket 
+TerminateFuseBenchmark 
 
-InitFuseBenchmark s3backer-test
-CreateBucket ${BUCKET_NAME}
-RunFuseTest ${TEST_DIR}  
-RemoveBucket ${BUCKET_NAME}  
-TerminateFuseBenchmark s3backer-test
 

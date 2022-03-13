@@ -50,14 +50,14 @@ function PrintWarning() {
     echo
 }
 
-
+BUCKET_NAME=nsdf-fuse-juicefs
 PrintWarning
-InitFuseBenchmark juicefs
+InitFuseBenchmark 
 InstallJuiceFs
 AuthorizeJuiceFs
-RunFuseTest ${TEST_DIR}
-RemoveBucket juicefs-${BUCKET_NAME}
-TerminateFuseBenchmark juicefs
+RunFuseTest 
+RemoveBucket 
+TerminateFuseBenchmark
 
 
 
