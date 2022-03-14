@@ -39,7 +39,7 @@ function FuseUp() {
 function FuseDown() {
     # first I unmount and then I remove all the cached (like I did a reboot)
     sudo umount ${TEST_DIR} 
-    sudo rm -Rf ${BASE_DIR}
+    rm -Rf ${BASE_DIR}
 }
 
 # ///////////////////////////////////////////////////////////////
@@ -320,7 +320,7 @@ elif [[ "${TEST_NAME}" == "remove-bucket" ]] ; then
 elif [[ "${TEST_NAME}" == "clean-bucket" ]] ; then
     SECONDS=0
     FuseUp
-    time -p rm -Rf ${TEST_DIR}/* 
+    time -p sudo rm -Rf ${TEST_DIR}/* # using sudo for objectivefs
     FuseDown
     echo "${TEST_NAME} done. Seconds: $SECONDS"
 
