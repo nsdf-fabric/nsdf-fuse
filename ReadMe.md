@@ -119,7 +119,6 @@ Install `s3fs` and setup credentials:
 
 ```
 sudo apt install -y s3fs 
-
 echo ${AWS_ACCESS_KEY_ID}:${AWS_SECRET_ACCESS_KEY} > ${HOME}/.s3fs
 chmod 600 ${HOME}/.s3fs
 ```
@@ -153,8 +152,6 @@ chmod 600 ~/.s3ql/authinfo2
 
 # Run test
 
-
-# TODO
 
 Run tests:
 

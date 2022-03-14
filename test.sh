@@ -128,9 +128,9 @@ if [[  "${SOFTWARE}" == "objectivefs" ]] ; then
         cat << EOF > create_bucket.sh
 #!/usr/bin/expect -f
 set timeout -1
-spawn mount.objectivefs create -l ${AWS_DEFAULT_REGION} ${1}
+spawn mount.objectivefs create -l ${AWS_DEFAULT_REGION} ${BUCKET_NAME}
 match_max 100000
-expect -exact "for s3://${1}): "
+expect -exact "for s3://${BUCKET_NAME}): "
 send -- "${OBJECTIVEFS_LICENSE}\r"
 expect eof
 EOF
