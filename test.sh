@@ -2,6 +2,24 @@
 set -e # exit when any command fails
 set -x
 
+# !!! dangerous !!!
+if [[ "${1}" == "clean-all" ]] ; then
+    
+    # remove mounts
+    for it in $(mount | grep temp-mount/temp-buckets | cut -d" " -f3); do 
+        sudo umount $it  || true
+    done
+
+    # remove buckets
+    for it in $(aws s3 ls | cut -d" " -f3); do 
+        aws s3 rb s3://$it --force || true
+    done
+
+    rm -Rf ~/temp-mount/temp-buckets  || true
+
+    exit 0
+fi 
+
 # example:
 # test.sh geesefs create-bucket
 SOFTWARE=$1
@@ -340,21 +358,6 @@ elif [[ "${TEST_NAME}" == "create-clean-remove-bucket" ]] ; then
     ./test.sh $SOFTWARE create
     ./test.sh $SOFTWARE clean
     ./test.sh $SOFTWARE remove
-
-elif [[ "${TEST_NAME}" == "clean-all" ]] ; then
-    # !!! dangerous !!!
-    
-    # remove mounts
-    for it in $(mount | grep temp-mount/temp-buckets | cut -d" " -f3); do 
-        sudo umount $it  || true
-    done
-
-    # remove buckets
-    for it in $(aws s3 ls | cut -d" " -f3); do 
-        aws s3 rb s3://$it --force || true
-    done
-
-    rm -Rf ~/temp-mount/temp-buckets  || true
 
 elif [[ "${TEST_NAME}" == "fuse-up" ]] ; then
     FuseUp 
