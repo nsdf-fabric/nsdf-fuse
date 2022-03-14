@@ -295,7 +295,7 @@ fi
 
 BUCKET_NAME=nsdf-fuse-test-${SOFTWARE}
 
-export BASE_DIR=${HOME}/mount/buckets/${BUCKET_NAME}
+export BASE_DIR=${HOME}/temp-mount/temp-buckets/${BUCKET_NAME}
 export TEST_DIR=${BASE_DIR}/test
 export CACHE_DIR=${BASE_DIR}/cache
 export LOG_DIR=${BASE_DIR}/log
@@ -340,6 +340,21 @@ elif [[ "${TEST_NAME}" == "create-clean-remove-bucket" ]] ; then
     ./test.sh $SOFTWARE create
     ./test.sh $SOFTWARE clean
     ./test.sh $SOFTWARE remove
+
+elif [[ "${TEST_NAME}" == "clean-all" ]] ; then
+    # !!! dangerous !!!
+    
+    # remove mounts
+    for it in $(mount | grep temp-mount/temp-buckets | cut -d" " -f3); do 
+        sudo umount $it  || true
+    done
+
+    # remove buckets
+    for it in $(aws s3 ls | cut -d" " -f3); do 
+        aws s3 rb s3://$it --force || true
+    done
+
+    rm -Rf ~/temp-mount/temp-buckets  || true
 
 elif [[ "${TEST_NAME}" == "fuse-up" ]] ; then
     FuseUp 
