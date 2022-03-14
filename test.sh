@@ -404,7 +404,7 @@ while (( "$#" )); do
         elif [[ "${TEST_NAME}" == "rnd-n-write" ]] ; then
             SECONDS=0
             FuseUp
-            RunFioWriteTest --name=rnd-n-write --rw=randwrite  --bs=64k   --numjobs=32 --size=256M  ${OPTION_W} || true
+            RunFioTest --name=rnd-n-write --rw=randwrite  --bs=64k   --numjobs=32 --size=256M  ${OPTION_W} || true
             FuseDown
             echo "${TEST_NAME} done. Seconds: $SECONDS" 
 
