@@ -325,6 +325,12 @@ elif [[ "${TEST_NAME}" == "clean-bucket" ]] ; then
     FuseDown
     echo "${TEST_NAME} done. Seconds: $SECONDS"
 
+elif [[ "${TEST_NAME}" == "fuse-up" ]] ; then
+    FuseUp 
+
+elif [[ "${TEST_NAME}" == "fuse-down" ]] ; then
+    FuseDown 
+    
 else
 
     OPTION_W="--allow_file_create=1  --end_fsync=1 --refill_buffers --create_serialize=0 --fallocate=none"
