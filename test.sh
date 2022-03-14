@@ -323,6 +323,13 @@ elif [[ "${TEST_NAME}" == "clean-bucket" ]] ; then
     FuseDown
     echo "${TEST_NAME} done. Seconds: $SECONDS"
 
+elif [[ "${TEST_NAME}" == "create-clean-remove-bucket" ]] ; then
+    CreateBucket
+    FuseUp
+    sudo rm -Rf ${TEST_DIR}/*
+    FuseDown
+    RemoveBucket
+
 elif [[ "${TEST_NAME}" == "fuse-up" ]] ; then
     FuseUp 
 
