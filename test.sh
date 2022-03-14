@@ -138,6 +138,11 @@ EOF
         chmod a+x create_bucket.sh
         sudo ./create_bucket.sh
         rm create_bucket.sh
+
+        # problem of file owned by root, remove it
+        FuseUp
+        sudo rm ${TEST_DIR}/README
+        FuseDown
     }
 
     function FuseUp() {
@@ -151,6 +156,14 @@ EOF
         sudo mount | grep ${TEST_DIR}
         sudo chmod a+rwX -R ${TEST_DIR}
     }
+
+    # overrideing because I need sudo here
+    function FuseDown() {
+        sudo umount ${TEST_DIR} 
+        rm -Rf ${BASE_DIR}
+    }
+
+
 fi
 
 if [[  "${SOFTWARE}" == "rclone" ]] ; then
