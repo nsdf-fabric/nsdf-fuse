@@ -176,9 +176,9 @@ Example:
 ./test.sh  geesefs      create-clean-remove-bucket 
 ./test.sh  goofys       create-clean-remove-bucket  
 ./test.sh  juicefs      create-clean-remove-bucket 
-./test.sh  objectivefs  create-clean-remove-bucket  ***
+./test.sh  objectivefs  create-clean-remove-bucket 
 ./test.sh  rclone       create-clean-remove-bucket 
-./test.sh  s3backer     create-clean-remove-bucket  ***
+./test.sh  s3backer     create-clean-remove-bucket 
 ./test.sh  s3fs         create-clean-remove-bucket 
 ./test.sh  s3ql         create-clean-remove-bucket  ***
 

@@ -23,7 +23,7 @@ fi
 # example:
 # test.sh geesefs create-bucket
 SOFTWARE=$1
-TEST_NAME=$2
+shift
 
 # ///////////////////////////////////////////////////////////
 function BaseCreateBucket() {
@@ -311,8 +311,7 @@ fi
 # ////////////////////////////////////////////////////////////////////////////////
 # check traffic by `sudo nload -u M -U M`
 
-BUCKET_NAME=nsdf-fuse-test-${SOFTWARE}
-
+export BUCKET_NAME=nsdf-fuse-test-${SOFTWARE}
 export BASE_DIR=${HOME}/temp-mount/temp-buckets/${BUCKET_NAME}
 export TEST_DIR=${BASE_DIR}/test
 export CACHE_DIR=${BASE_DIR}/cache
@@ -329,105 +328,109 @@ echo "TEST_DIR:           ${TEST_DIR}"
 echo "CACHE_DIR:          ${CACHE_DIR}"
 echo "LOG_DIR:            ${LOG_DIR}"
 
-echo "Starting TEST_NAME=${TEST_NAME} TEST_DIR=${TEST_DIR}..." 
+while (( "$#" )); do
 
-# minimize effect of RAM cache
-sudo sh -c "/usr/bin/echo 3 > /proc/sys/vm/drop_caches" 
+    TEST_NAME=$1
+    shift
 
-mkdir  -p ${BASE_DIR}  || true
-mkdir  -p ${TEST_DIR}  || true
-mkdir  -p ${CACHE_DIR} || true
-mkdir  -p ${LOG_DIR}   || true
+    echo "Starting TEST_NAME=${TEST_NAME} TEST_DIR=${TEST_DIR}..." 
 
-if [[ "${TEST_NAME}" == "create-bucket" ]] ; then
-    CreateBucket
-    aws s3 ls  
+    # minimize effect of RAM cache
+    sudo sh -c "/usr/bin/echo 3 > /proc/sys/vm/drop_caches" 
 
-elif [[ "${TEST_NAME}" == "remove-bucket" ]] ; then
-    RemoveBucket 
-    aws s3 ls     
+    mkdir  -p ${BASE_DIR}  || true
+    mkdir  -p ${TEST_DIR}  || true
+    mkdir  -p ${CACHE_DIR} || true
+    mkdir  -p ${LOG_DIR}   || true
 
-elif [[ "${TEST_NAME}" == "clean-bucket" ]] ; then
-    SECONDS=0
-    FuseUp
-    time -p rm -Rf ${TEST_DIR}/* 
-    FuseDown
-    echo "${TEST_NAME} done. Seconds: $SECONDS"
+    if [[ "${TEST_NAME}" == "create-bucket" ]] ; then
+        CreateBucket
+        aws s3 ls  
 
-elif [[ "${TEST_NAME}" == "create-clean-remove-bucket" ]] ; then
-    ./test.sh $SOFTWARE create-bucket
-    ./test.sh $SOFTWARE clean-bucket
-    ./test.sh $SOFTWARE remove-bucket
+    elif [[ "${TEST_NAME}" == "remove-bucket" ]] ; then
+        RemoveBucket 
+        aws s3 ls     
 
-elif [[ "${TEST_NAME}" == "fuse-up" ]] ; then
-    FuseUp 
-
-elif [[ "${TEST_NAME}" == "fuse-down" ]] ; then
-    FuseDown 
-
-else
-
-    OPTION_W="--allow_file_create=1  --end_fsync=1 --refill_buffers --create_serialize=0 --fallocate=none"
-    OPTION_R="--allow_file_create=0"
-
-    # tot_storage=filesize*numjobs=64G fuse-activity=size=64G
-    if [[ "${TEST_NAME}" == "seq-1-write" ]] ; then
+    elif [[ "${TEST_NAME}" == "clean-bucket" ]] ; then
         SECONDS=0
         FuseUp
-        RunFioTest --name=seq-1-write --rw=write --bs=4M --filesize=64G --numjobs=1  --size=64G ${OPTION_W} || true
+        time -p rm -Rf ${TEST_DIR}/* 
         FuseDown
         echo "${TEST_NAME} done. Seconds: $SECONDS"
 
-    elif [[ "${TEST_NAME}" == "seq-1-read" ]] ; then
-        SECONDS=0
-        FuseUp
-        RunFioTest  --name=seq-1-read --rw=read  --bs=4M --filesize=64G --numjobs=1 --size=64G ${OPTION_R} || true
-        FuseDown
-        echo "${TEST_NAME} done. Seconds: $SECONDS"
+    elif [[ "${TEST_NAME}" == "fuse-up" ]] ; then
+        FuseUp 
 
-    # multi sequential (tot-storage=filesize*numjobs=64G fuse-activity=size=64G)
-    elif [[ "${TEST_NAME}" == "seq-n-write" ]] ; then
-        SECONDS=0
-        FuseUp
-        RunFioTest --name=seq-n-write --rw=write --bs=4M  --filesize=1G  --numjobs=64   --size=64G ${OPTION_W} || true
-        FuseDown
-        echo "${TEST_NAME} done. Seconds: $SECONDS"
-
-    elif [[ "${TEST_NAME}" == "seq-n-read" ]] ; then
-        SECONDS=0
-        FuseUp
-        RunFioTest  --name=seq-n-read  --rw=read  --bs=4M  --filesize=1G  --numjobs=64   --size=64G ${OPTION_R}  || true
-        FuseDown
-        echo "${TEST_NAME} done. Seconds: $SECONDS"
-
-    # rand test (tot-storage=filesize*numjobs=64G fuse-activity=numjobs*size=8G) (WEIRD: rand test use --size with a different meaning)
-    elif [[ "${TEST_NAME}" == "rnd-n-write" ]] ; then
-        SECONDS=0
-        FuseUp
-        RunFioWriteTest --name=rnd-n-write --rw=randwrite  --bs=64k  --filesize=2G --numjobs=32   --size=256M ${OPTION_W} || true
-        FuseDown
-        echo "${TEST_NAME} done. Seconds: $SECONDS" 
-
-    elif [[ "${TEST_NAME}" == "rnd-n-read" ]] ; then
-        SECONDS=0
-        FuseUp
-        RunFioTest  --name=rnd-n-read  --rw=randread   --bs=64k  --filesize=2G --numjobs=32   --size=256M ${OPTION_R}  || true
-        FuseDown
-        echo "${TEST_NAME} done. Seconds: $SECONDS"
-
-    elif [[ "${TEST_NAME}" == "tar-gz" ]] ; then
-        wget  https://curl.se/download/curl-7.82.0.tar.gz 
-        SECONDS=0
-        FuseUp
-        time -p tar xzf curl-7.82.0.tar.gz 1>/dev/null -C ${TEST_DIR} 
-        FuseDown
-        echo "${TEST_NAME} done. Seconds: $SECONDS"
-        rm -f curl-7.82.0.tar.gz
+    elif [[ "${TEST_NAME}" == "fuse-down" ]] ; then
+        FuseDown 
 
     else
-        echo "UNKNOWN TEST"
-        exit 1
-    fi
-fi
 
-echo "${TEST_NAME} done"
+        OPTION_W="--allow_file_create=1  --end_fsync=1 --refill_buffers --create_serialize=0 --fallocate=none"
+        OPTION_R="--allow_file_create=0"
+
+        # tot_storage=filesize*numjobs=64G fuse-activity=size=64G
+        if [[ "${TEST_NAME}" == "seq-1-write" ]] ; then
+            SECONDS=0
+            FuseUp
+            RunFioTest --name=seq-1-write --rw=write --bs=4M --filesize=64G --numjobs=1  --size=64G ${OPTION_W} || true
+            FuseDown
+            echo "${TEST_NAME} done. Seconds: $SECONDS"
+
+        elif [[ "${TEST_NAME}" == "seq-1-read" ]] ; then
+            SECONDS=0
+            FuseUp
+            RunFioTest  --name=seq-1-read --rw=read  --bs=4M --filesize=64G --numjobs=1 --size=64G ${OPTION_R} || true
+            FuseDown
+            echo "${TEST_NAME} done. Seconds: $SECONDS"
+
+        # multi sequential (tot-storage=filesize*numjobs=64G fuse-activity=size=64G)
+        elif [[ "${TEST_NAME}" == "seq-n-write" ]] ; then
+            SECONDS=0
+            FuseUp
+            RunFioTest --name=seq-n-write --rw=write --bs=4M  --filesize=1G  --numjobs=64   --size=64G ${OPTION_W} || true
+            FuseDown
+            echo "${TEST_NAME} done. Seconds: $SECONDS"
+
+        elif [[ "${TEST_NAME}" == "seq-n-read" ]] ; then
+            SECONDS=0
+            FuseUp
+            RunFioTest  --name=seq-n-read  --rw=read  --bs=4M  --filesize=1G  --numjobs=64   --size=64G ${OPTION_R}  || true
+            FuseDown
+            echo "${TEST_NAME} done. Seconds: $SECONDS"
+
+        # rand test (tot-storage=filesize*numjobs=64G fuse-activity=numjobs*size=8G) (WEIRD: rand test use --size with a different meaning)
+        elif [[ "${TEST_NAME}" == "rnd-n-write" ]] ; then
+            SECONDS=0
+            FuseUp
+            RunFioWriteTest --name=rnd-n-write --rw=randwrite  --bs=64k  --filesize=2G --numjobs=32   --size=256M ${OPTION_W} || true
+            FuseDown
+            echo "${TEST_NAME} done. Seconds: $SECONDS" 
+
+        elif [[ "${TEST_NAME}" == "rnd-n-read" ]] ; then
+            SECONDS=0
+            FuseUp
+            RunFioTest  --name=rnd-n-read  --rw=randread   --bs=64k  --filesize=2G --numjobs=32   --size=256M ${OPTION_R}  || true
+            FuseDown
+            echo "${TEST_NAME} done. Seconds: $SECONDS"
+
+        elif [[ "${TEST_NAME}" == "tar-gz" ]] ; then
+            wget  https://curl.se/download/curl-7.82.0.tar.gz 
+            SECONDS=0
+            FuseUp
+            time -p tar xzf curl-7.82.0.tar.gz 1>/dev/null -C ${TEST_DIR} 
+            FuseDown
+            echo "${TEST_NAME} done. Seconds: $SECONDS"
+            rm -f curl-7.82.0.tar.gz
+
+        else
+            echo "UNKNOWN TEST"
+            exit 1
+        fi
+    fi
+
+    echo "${TEST_NAME} done"
+
+
+done
+
