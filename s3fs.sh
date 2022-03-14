@@ -59,6 +59,7 @@ function FuseDown() {
 }
 
 BUCKET_NAME=nsdf-fuse-s3fs
+InitFuseTest 
 InstallS3Fs
 CreateCredentials
 CreateBucket

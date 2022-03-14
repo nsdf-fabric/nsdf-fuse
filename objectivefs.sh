@@ -6,6 +6,7 @@ source ./fuse_test.sh
 function InstallObjectiveFs() {
     wget -q https://objectivefs.com/user/download/asn7gu3nd/objectivefs_6.9.1_amd64.deb
     sudo dpkg -i objectivefs_6.9.1_amd64.deb
+    rm objectivefs_6.9.1_amd64.deb
 }
 
 # /////////////////////////////////////////////////////////////////
@@ -88,6 +89,7 @@ function CleanBucket() {
 BUCKET_NAME=nsdf-fuse-objectivefs
 CHECK OBJECTIVEFS_LICENSE
 OBJECTIVEFS_PASSPHRASE=${OBJECTIVEFS_LICENSE}
+
 InitFuseTest 
 InstallObjectiveFs
 CreateCredentials

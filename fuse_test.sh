@@ -164,6 +164,8 @@ function RunFuseTest() {
 
     else
 
+        # adding || true because I am getting spurious non zero return value
+
         # one sequential (tot-storage=filesize*numjobs=64G fuse-activity=size=64G)
         RunFioWriteTest --name=one-seq-write   --rw=write --bs=4M --filesize=64G --numjobs=1     --size=64G || true
         RunFioReadTest  --name=one-seq-read    --rw=read  --bs=4M --filesize=64G --numjobs=1     --size=64G || true
@@ -187,14 +189,14 @@ function RunFuseTest() {
         time -p tar xzf curl-7.82.0.tar.gz 1>/dev/null -C ${TEST_DIR} 
         FuseDown
         echo "Test [tar-xzf] done"
-        rm -f curl-7.82.0.tar.gz
+        rm -f curl-7.82.0.tar.gz || true # in case it fails
         echo
 
         # lot of removal of small files
         echo "# ///////////////////////////////////////////////////////////"    
         echo "Start test [rm-file]..." 
         FuseUp 
-        time -p rm -Rf ${TEST_DIR}/* 
+        time -p rm -Rf ${TEST_DIR}/*  # in case it fails
         FuseDown
         echo "Test [rm-file] done." 
         echo
