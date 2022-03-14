@@ -149,7 +149,7 @@ EOF
             s3://${BUCKET_NAME} \
             ${TEST_DIR}
         sudo mount | grep ${TEST_DIR}
-        sudo chmod a+rwX -R ${CACHE_DIR}
+        sudo chmod a+rwX -R ${TEST_DIR}
     }
 fi
 
@@ -209,7 +209,7 @@ if [[  "${SOFTWARE}" == "s3backer" ]] ; then
             ${CACHE_DIR}/backend/file \
             ${TEST_DIR}  
         mount | grep ${TEST_DIR}
-        sudo chmod a+rwX -R ${BASE_DIR}
+        sudo chmod a+rwX -R ${TEST_DIR}
     }
 
     function FuseDown() {
