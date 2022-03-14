@@ -173,33 +173,21 @@ Example:
 
 ./test.sh clean-all
 
-./test.sh  geesefs      create-clean-remove-bucket 
-./test.sh  goofys       create-clean-remove-bucket  
-./test.sh  juicefs      create-clean-remove-bucket 
-./test.sh  objectivefs  create-clean-remove-bucket 
-./test.sh  rclone       create-clean-remove-bucket 
-./test.sh  s3backer     create-clean-remove-bucket 
-./test.sh  s3fs         create-clean-remove-bucket 
-./test.sh  s3ql         create-clean-remove-bucket  ***
+./test.sh  geesefs      create-bucket clean-bucket remove-bucket 
+./test.sh  goofys       create-bucket clean-bucket remove-bucket  
+./test.sh  juicefs      create-bucket clean-bucket remove-bucket 
+./test.sh  objectivefs  create-bucket clean-bucket remove-bucket 
+./test.sh  rclone       create-bucket clean-bucket remove-bucket 
+./test.sh  s3backer     create-bucket clean-bucket remove-bucket 
+./test.sh  s3fs         create-bucket clean-bucket remove-bucket 
 
-# TODO s3ql
+
+# *** TODO s3ql ***
 for it in geesefs goofys juicefs objectivefs rclone s3backer s3fs ; do
-   ./test.sh $it create-bucket
-
-   ./test.sh geesefs seq-1-write
-   ./test.sh geesefs seq-1-read
-   ./test.sh geesefs clean-bucket
-
-   ./test.sh geesefs seq-n-write
-   ./test.sh geesefs seq-n-read
-   ./test.sh geesefs clean-bucket
-
-   ./test.sh geesefs rnd-n-write
-   ./test.sh geesefs rnd-n-read
-   ./test.sh geesefs clean-bucket
-
-   ./test.sh geesefs tar-gz
-   ./test.sh geesefs clean-bucket
+   ./test.sh geesefs seq-1-write seq-1-read clean-bucket
+   ./test.sh geesefs seq-n-write seq-n-read clean-bucket
+   ./test.sh geesefs rnd-n-write rnd-n-read clean-bucket
+   ./test.sh geesefs tar-gz clean-bucket
 
    ./test.sh $it remove-bucket
 

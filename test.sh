@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e # exit when any command fails
-set -x
 
 # !!! dangerous !!!
 if [[ "${1}" == "clean-all" ]] ; then
