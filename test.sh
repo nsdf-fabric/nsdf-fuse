@@ -368,48 +368,50 @@ while (( "$#" )); do
         OPTION_W="--allow_file_create=1  --end_fsync=1 --refill_buffers --create_serialize=0 --fallocate=none"
         OPTION_R="--allow_file_create=0"
 
-        # tot_storage=filesize*numjobs=64G fuse-activity=size=64G
+        # inspired by https://juicefs.com/docs/cloud/single_node_benchmark/
+
         if [[ "${TEST_NAME}" == "seq-1-write" ]] ; then
             SECONDS=0
             FuseUp
-            RunFioTest --name=seq-1-write --rw=write --bs=4M --filesize=64G --numjobs=1  --size=64G ${OPTION_W} || true
+            RunFioTest --name=seq-1-write --rw=write --bs=4M --numjobs=1 --size=64G ${OPTION_W} || true
             FuseDown
             echo "${TEST_NAME} done. Seconds: $SECONDS"
 
         elif [[ "${TEST_NAME}" == "seq-1-read" ]] ; then
             SECONDS=0
             FuseUp
-            RunFioTest  --name=seq-1-read --rw=read  --bs=4M --filesize=64G --numjobs=1 --size=64G ${OPTION_R} || true
+            RunFioTest  --name=seq-1-read --rw=read  --bs=4M --numjobs=1 --size=64G ${OPTION_R} || true
             FuseDown
             echo "${TEST_NAME} done. Seconds: $SECONDS"
 
-        # multi sequential (tot-storage=filesize*numjobs=64G fuse-activity=size=64G)
+
         elif [[ "${TEST_NAME}" == "seq-n-write" ]] ; then
             SECONDS=0
             FuseUp
-            RunFioTest --name=seq-n-write --rw=write --bs=4M  --filesize=1G  --numjobs=64   --size=64G ${OPTION_W} || true
+            RunFioTest --name=seq-n-write --rw=write --bs=4M --numjobs=64 --size=64G ${OPTION_W} || true
             FuseDown
             echo "${TEST_NAME} done. Seconds: $SECONDS"
 
         elif [[ "${TEST_NAME}" == "seq-n-read" ]] ; then
             SECONDS=0
             FuseUp
-            RunFioTest  --name=seq-n-read  --rw=read  --bs=4M  --filesize=1G  --numjobs=64   --size=64G ${OPTION_R}  || true
+            RunFioTest  --name=seq-n-read  --rw=read  --bs=4M  --numjobs=64 --size=64G ${OPTION_R}  || true
             FuseDown
             echo "${TEST_NAME} done. Seconds: $SECONDS"
 
-        # rand test (tot-storage=filesize*numjobs=64G fuse-activity=numjobs*size=8G) (WEIRD: rand test use --size with a different meaning)
+        # TOT_STORAGE=filesize*numjobs
+        # FIO_ACTIVITY=numjobs*size
         elif [[ "${TEST_NAME}" == "rnd-n-write" ]] ; then
             SECONDS=0
             FuseUp
-            RunFioWriteTest --name=rnd-n-write --rw=randwrite  --bs=64k  --filesize=2G --numjobs=32   --size=256M ${OPTION_W} || true
+            RunFioWriteTest --name=rnd-n-write --rw=randwrite  --bs=64k   --numjobs=32 --size=256M  ${OPTION_W} || true
             FuseDown
             echo "${TEST_NAME} done. Seconds: $SECONDS" 
 
         elif [[ "${TEST_NAME}" == "rnd-n-read" ]] ; then
             SECONDS=0
             FuseUp
-            RunFioTest  --name=rnd-n-read  --rw=randread   --bs=64k  --filesize=2G --numjobs=32   --size=256M ${OPTION_R}  || true
+            RunFioTest  --name=rnd-n-read  --rw=randread --bs=64k  --numjobs=32 --size=256M ${OPTION_R}  || true
             FuseDown
             echo "${TEST_NAME} done. Seconds: $SECONDS"
 
