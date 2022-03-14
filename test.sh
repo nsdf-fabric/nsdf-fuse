@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e # exit when any command fails
+set -x
 
 # example:
 # test.sh geesefs create-bucket
