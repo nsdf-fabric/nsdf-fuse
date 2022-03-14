@@ -7,6 +7,13 @@ sudo apt -qq update
 sudo apt -qq install -y nload expect python3 python3-pip awscli fuse libfuse-dev 
 ```
 
+Clone this repository:
+
+```
+git clone https://github.com/nsdf-fabric/nsdf-fuse-test
+cd nsdf-fuse-test
+```
+
 
 Define the credentials for the the tests (change as needed):
 
@@ -152,13 +159,11 @@ chmod 600 ~/.s3ql/authinfo2
 
 # Run test
 
-
-Run tests:
+Example:
 
 ```
 
 # TODO s3ql
-
 for it in geesefs goofys juicefs objectivefs rclone s3backer s3fs ; do
    ./test.sh $it create-bucket
 
@@ -180,5 +185,6 @@ for it in geesefs goofys juicefs objectivefs rclone s3backer s3fs ; do
    ./test.sh $it remove-bucket
 
 done
+
 ```
 

@@ -271,9 +271,7 @@ if [[  "${SOFTWARE}" == "s3ql" ]] ; then
     }
 
     function FuseDown() {
-        umount.s3ql \
-            --log ${LOG_DIR}/log \
-            ${TEST_DIR}
+        umount.s3ql --log ${LOG_DIR}/log ${TEST_DIR}
         rm -Rf ${BASE_DIR}
     }
 
@@ -330,7 +328,7 @@ elif [[ "${TEST_NAME}" == "fuse-up" ]] ; then
 
 elif [[ "${TEST_NAME}" == "fuse-down" ]] ; then
     FuseDown 
-    
+
 else
 
     OPTION_W="--allow_file_create=1  --end_fsync=1 --refill_buffers --create_serialize=0 --fallocate=none"
@@ -340,14 +338,14 @@ else
     if [[ "${TEST_NAME}" == "seq-1-write" ]] ; then
         SECONDS=0
         FuseUp
-        RunFioTest --name=seq-1-write   --rw=write --bs=4M --filesize=64G --numjobs=1     --size=64G ${OPTION_W} || true
+        RunFioTest --name=seq-1-write --rw=write --bs=4M --filesize=64G --numjobs=1  --size=64G ${OPTION_W} || true
         FuseDown
         echo "${TEST_NAME} done. Seconds: $SECONDS"
 
     elif [[ "${TEST_NAME}" == "seq-1-read" ]] ; then
         SECONDS=0
         FuseUp
-        RunFioTest  --name=seq-1-read    --rw=read  --bs=4M --filesize=64G --numjobs=1     --size=64G ${OPTION_R} || true
+        RunFioTest  --name=seq-1-read --rw=read  --bs=4M --filesize=64G --numjobs=1 --size=64G ${OPTION_R} || true
         FuseDown
         echo "${TEST_NAME} done. Seconds: $SECONDS"
 
@@ -396,4 +394,4 @@ else
     fi
 fi
 
-echo "All done"
+echo "${TEST_NAME} done"
