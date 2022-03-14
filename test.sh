@@ -179,7 +179,7 @@ if [[  "${SOFTWARE}" == "s3backer" ]] ; then
         for i in 1 2 3 4 5; do 
             s3backer \
                 --accessId=${AWS_ACCESS_KEY_ID} \
-                --accessKey=${AWS_SECRET_ACCESS_KEY} 
+                --accessKey=${AWS_SECRET_ACCESS_KEY} \
                 --region=${AWS_DEFAULT_REGION}  \
                 --blockCacheFile=${CACHE_DIR}/block_cache_file \
                 --blockSize=4M \
