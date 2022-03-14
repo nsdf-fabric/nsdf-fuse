@@ -66,6 +66,7 @@ Install `goofys`:
 wget https://github.com/kahing/goofys/releases/latest/download/goofys
 sudo mv goofys /usr/bin/
 chmod a+x /usr/bin/goofys
+
 ```
 
 Install `juicefs`:
@@ -74,6 +75,7 @@ Install `juicefs`:
 wget -q https://juicefs.com/static/juicefs
 sudo mv juicefs /usr/bin
 chmod +x /usr/bin/juicefs 
+
 ```
 
 Also for `juicefs` you need to create a File System named `juicefs-nsdf-fuse-test-juicefs` (see https://juicefs.com/console/).
@@ -94,6 +96,7 @@ sudo bash -c "echo ${AWS_DEFAULT_REGION}     > /etc/objectivefs.env/AWS_DEFAULT_
 sudo bash -c "echo ${OBJECTIVEFS_LICENSE}    > /etc/objectivefs.env/OBJECTIVEFS_LICENSE"
 sudo bash -c "echo ${OBJECTIVEFS_LICENSE}    > /etc/objectivefs.env/OBJECTIVEFS_PASSPHRASE"
 sudo chmod 600 /etc/objectivefs.env/*
+
 ```
 
 Install `rclone` and set credentials:
@@ -103,6 +106,7 @@ wget https://downloads.rclone.org/v1.57.0/rclone-v1.57.0-linux-amd64.deb
 sudo dpkg -i rclone-v1.57.0-linux-amd64.deb
 rm rclone-v1.57.0-linux-amd64.deb
 
+mkdir -p ~/.config/rclone/
 cat << EOF >> ~/.config/rclone/rclone.conf
 [nsdf-test-rclone]
 type=s3
@@ -113,6 +117,7 @@ region=${AWS_DEFAULT_REGION}
 endpoint=https://s3.${AWS_DEFAULT_REGION}.amazonaws.com
 EOF
 chmod 600 ~/.config/rclone/rclone.conf
+
 ```
 
 Install `s3backer`:
@@ -120,6 +125,7 @@ Install `s3backer`:
 ```
 sudo apt install -y s3backer
 sudo sh -c 'echo user_allow_other >> /etc/fuse.conf'
+
 ```
 
 Install `s3fs` and setup credentials:
@@ -128,6 +134,7 @@ Install `s3fs` and setup credentials:
 sudo apt install -y s3fs 
 echo ${AWS_ACCESS_KEY_ID}:${AWS_SECRET_ACCESS_KEY} > ${HOME}/.s3fs
 chmod 600 ${HOME}/.s3fs
+
 ```
 
 Install `s3ql` and setup credentials (NOTE fuse3 is not compatible with fuse so you will need to run this test alone):
@@ -155,6 +162,7 @@ backend-login: ${AWS_ACCESS_KEY_ID}
 backend-password: ${AWS_SECRET_ACCESS_KEY}
 EOF
 chmod 600 ~/.s3ql/authinfo2
+
 ```
 
 # Run test
@@ -162,6 +170,15 @@ chmod 600 ~/.s3ql/authinfo2
 Example:
 
 ```
+
+./test.sh  geesefs      create-clean-remove-bucket 
+./test.sh  goofys       create-clean-remove-bucket  
+./test.sh  juicefs      create-clean-remove-bucket 
+./test.sh  objectivefs  create-clean-remove-bucket 
+./test.sh  rclone       create-clean-remove-bucket 
+./test.sh  s3backer     create-clean-remove-bucket 
+./test.sh  s3fs         create-clean-remove-bucket 
+./test.sh  s3ql         create-clean-remove-bucket 
 
 # TODO s3ql
 for it in geesefs goofys juicefs objectivefs rclone s3backer s3fs ; do

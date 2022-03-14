@@ -39,7 +39,7 @@ function FuseUp() {
 # ///////////////////////////////////////////////////////////
 function FuseDown() {
     # first I unmount and then I remove all the cached (like I did a reboot)
-    sudo umount ${TEST_DIR} 
+    umount ${TEST_DIR} 
     rm -Rf ${BASE_DIR}
 }
 
@@ -135,7 +135,7 @@ expect -exact "for s3://${BUCKET_NAME}): "
 send -- "${OBJECTIVEFS_LICENSE}\r"
 expect eof
 EOF
-        sudo chmod 700 create_bucket.sh
+        chmod a+x create_bucket.sh
         sudo ./create_bucket.sh
         rm create_bucket.sh
     }
@@ -149,7 +149,7 @@ EOF
             s3://${BUCKET_NAME} \
             ${TEST_DIR}
         sudo mount | grep ${TEST_DIR}
-        sudo chmod a+rwX -R ${TEST_DIR}
+        sudo chmod a+rwX -R ${CACHE_DIR}
     }
 fi
 
@@ -209,12 +209,12 @@ if [[  "${SOFTWARE}" == "s3backer" ]] ; then
             ${CACHE_DIR}/backend/file \
             ${TEST_DIR}  
         mount | grep ${TEST_DIR}
-        sudo chmod a+rwX -R ${TEST_DIR}
+        sudo chmod a+rwX -R ${BASE_DIR}
     }
 
     function FuseDown() {
         sudo umount ${TEST_DIR}
-        sudo umount ${CACHE_DIR}/backend
+        umount ${CACHE_DIR}/backend
         rm -Rf ${BASE_DIR}
     }
 fi
@@ -319,14 +319,14 @@ elif [[ "${TEST_NAME}" == "remove-bucket" ]] ; then
 elif [[ "${TEST_NAME}" == "clean-bucket" ]] ; then
     SECONDS=0
     FuseUp
-    time -p sudo rm -Rf ${TEST_DIR}/* # using sudo for objectivefs
+    time -p rm -Rf ${TEST_DIR}/* 
     FuseDown
     echo "${TEST_NAME} done. Seconds: $SECONDS"
 
 elif [[ "${TEST_NAME}" == "create-clean-remove-bucket" ]] ; then
     CreateBucket
     FuseUp
-    sudo rm -Rf ${TEST_DIR}/*
+    rm -Rf ${TEST_DIR}/*
     FuseDown
     RemoveBucket
 
