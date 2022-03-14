@@ -308,7 +308,6 @@ if [[  "${SOFTWARE}" == "s3ql" ]] ; then
 fi
 
 # ////////////////////////////////////////////////////////////////////////////////
-# check traffic by `sudo nload -u M -U M`
 
 export BUCKET_NAME=nsdf-fuse-test-${SOFTWARE}
 export BASE_DIR=${HOME}/temp-mount/temp-buckets/${BUCKET_NAME}
@@ -370,17 +369,19 @@ while (( "$#" )); do
 
         # inspired by https://juicefs.com/docs/cloud/single_node_benchmark/
 
+        # check traffic by `sudo nload -u M -U M`
+
         if [[ "${TEST_NAME}" == "seq-1-write" ]] ; then
             SECONDS=0
             FuseUp
-            RunFioTest --name=seq-1-write --rw=write --bs=4M --numjobs=1 --size=64G ${OPTION_W} || true
+            RunFioTest --name=seq-1-write --rw=write --bs=4M --numjobs=1 --size=32G ${OPTION_W} || true
             FuseDown
             echo "${TEST_NAME} done. Seconds: $SECONDS"
 
         elif [[ "${TEST_NAME}" == "seq-1-read" ]] ; then
             SECONDS=0
             FuseUp
-            RunFioTest  --name=seq-1-read --rw=read  --bs=4M --numjobs=1 --size=64G ${OPTION_R} || true
+            RunFioTest  --name=seq-1-read --rw=read  --bs=4M --numjobs=1 --size=32G ${OPTION_R} || true
             FuseDown
             echo "${TEST_NAME} done. Seconds: $SECONDS"
 
@@ -388,14 +389,14 @@ while (( "$#" )); do
         elif [[ "${TEST_NAME}" == "seq-n-write" ]] ; then
             SECONDS=0
             FuseUp
-            RunFioTest --name=seq-n-write --rw=write --bs=4M --numjobs=64 --size=64G ${OPTION_W} || true
+            RunFioTest --name=seq-n-write --rw=write --bs=4M --numjobs=64 --size=32G ${OPTION_W} || true
             FuseDown
             echo "${TEST_NAME} done. Seconds: $SECONDS"
 
         elif [[ "${TEST_NAME}" == "seq-n-read" ]] ; then
             SECONDS=0
             FuseUp
-            RunFioTest  --name=seq-n-read  --rw=read  --bs=4M  --numjobs=64 --size=64G ${OPTION_R}  || true
+            RunFioTest  --name=seq-n-read  --rw=read  --bs=4M  --numjobs=64 --size=32G ${OPTION_R}  || true
             FuseDown
             echo "${TEST_NAME} done. Seconds: $SECONDS"
 
