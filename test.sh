@@ -39,7 +39,7 @@ function FuseUp() {
 function FuseDown() {
     # first I unmount and then I remove all the cached (like I did a reboot)
     sudo umount ${TEST_DIR} 
-    rm -Rf ${BASE_DIR}
+    sudo rm -Rf ${BASE_DIR}
 }
 
 # ///////////////////////////////////////////////////////////////
