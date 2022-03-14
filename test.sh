@@ -355,9 +355,9 @@ elif [[ "${TEST_NAME}" == "clean-bucket" ]] ; then
     echo "${TEST_NAME} done. Seconds: $SECONDS"
 
 elif [[ "${TEST_NAME}" == "create-clean-remove-bucket" ]] ; then
-    ./test.sh $SOFTWARE create
-    ./test.sh $SOFTWARE clean
-    ./test.sh $SOFTWARE remove
+    ./test.sh $SOFTWARE create-bucket
+    ./test.sh $SOFTWARE clean-bucket
+    ./test.sh $SOFTWARE remove-bucket
 
 elif [[ "${TEST_NAME}" == "fuse-up" ]] ; then
     FuseUp 

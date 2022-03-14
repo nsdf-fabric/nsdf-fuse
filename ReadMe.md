@@ -170,6 +170,9 @@ chmod 600 ~/.s3ql/authinfo2
 Example:
 
 ```
+
+./test.sh clean-all
+
 ./test.sh  geesefs      create-clean-remove-bucket 
 ./test.sh  goofys       create-clean-remove-bucket  
 ./test.sh  juicefs      create-clean-remove-bucket 
