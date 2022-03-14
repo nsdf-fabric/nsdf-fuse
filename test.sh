@@ -337,11 +337,9 @@ elif [[ "${TEST_NAME}" == "clean-bucket" ]] ; then
     echo "${TEST_NAME} done. Seconds: $SECONDS"
 
 elif [[ "${TEST_NAME}" == "create-clean-remove-bucket" ]] ; then
-    CreateBucket
-    FuseUp
-    rm -Rf ${TEST_DIR}/*
-    FuseDown
-    RemoveBucket
+    ./test.sh $SOFTWARE create
+    ./test.sh $SOFTWARE clean
+    ./test.sh $SOFTWARE remove
 
 elif [[ "${TEST_NAME}" == "fuse-up" ]] ; then
     FuseUp 
