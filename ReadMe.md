@@ -170,15 +170,14 @@ chmod 600 ~/.s3ql/authinfo2
 Example:
 
 ```
-
 ./test.sh  geesefs      create-clean-remove-bucket 
 ./test.sh  goofys       create-clean-remove-bucket  
 ./test.sh  juicefs      create-clean-remove-bucket 
-./test.sh  objectivefs  create-clean-remove-bucket 
+./test.sh  objectivefs  create-clean-remove-bucket  ***
 ./test.sh  rclone       create-clean-remove-bucket 
-./test.sh  s3backer     create-clean-remove-bucket 
+./test.sh  s3backer     create-clean-remove-bucket  ***
 ./test.sh  s3fs         create-clean-remove-bucket 
-./test.sh  s3ql         create-clean-remove-bucket 
+./test.sh  s3ql         create-clean-remove-bucket  ***
 
 # TODO s3ql
 for it in geesefs goofys juicefs objectivefs rclone s3backer s3fs ; do
@@ -202,6 +201,24 @@ for it in geesefs goofys juicefs objectivefs rclone s3backer s3fs ; do
    ./test.sh $it remove-bucket
 
 done
+
+
+
+
+```
+
+To clean:
+
+```
+# remove mounts
+for it in $(mount | grep nsdf-fuse-test | cut -d" " -f3); do sudo umount $it ; done
+
+# remove buckets
+for it in $(aws s3 ls | cut -d" " -f3); do aws s3 rb s3://$it --force ; done
+
+
+rm -Rf ~/mount
+
 
 ```
 
