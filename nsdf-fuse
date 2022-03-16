@@ -2,10 +2,11 @@
 
 # when any command fails
 set -e 
-source ./scripts/utils.sh
 
 # /////////////////////////////////////////////////////////////////
 function CleanAll() {
+
+    BUCKETS_DIR=${BUCKETS_DIR:?}
 
     for I in {1..3}
     do
@@ -239,6 +240,10 @@ function RunBenchmarkSimple() {
 # //////////////////////////////////////////////////////////////////
 function Main() {
 
+    # all test are meant to be temporary
+    export BUCKETS_DIR=/tmp/buckets
+    mkdir -p $BUCKETS_DIR
+
     ACTION=${1:-help}
 
     # target agnostic
@@ -249,7 +254,7 @@ function Main() {
 
     elif [[ "$ACTION" == "clean-all" ]] ; then
         shift
-        CleanAll $@        
+        CleanAll       
         exit 0
 
     elif [[ "$ACTION" == "quick-check" ]] ; then
@@ -272,7 +277,7 @@ function Main() {
     TARGET=${1:?}
     shift
 
-    export BUCKETS_DIR=/tmp/buckets
+    
     export BUCKET_NAME=nsdf-fuse-test-${TARGET}
     export BASE_DIR=${BUCKETS_DIR}/${BUCKET_NAME}
     export TEST_DIR=${BASE_DIR}/test
