@@ -4,6 +4,40 @@
 set -e 
 
 # /////////////////////////////////////////////////////////////////
+function DropCache() {
+    TODO
+}
+
+# /////////////////////////////////////////////////////////////////
+function Retry() {
+    TODO
+}
+
+functio SudoRetry() {
+    TODO
+}
+
+
+
+# /////////////////////////////////////////////////////////////////
+function BaseRemoveBucket() {
+    TODO
+    NAME=${1:?}
+    aws s3 rb s3://${NAME} --force
+}
+
+
+# /////////////////////////////////////////////////////////////////
+function BaseCreateBucket()
+{
+    BUCKET_NAME=${1:?}
+    REGION=${2:?}
+    TODO
+    aws s3 crea
+    ${BUCKET_NAME} ${AWS_DEFAULT_REGION}
+}
+
+# /////////////////////////////////////////////////////////////////
 function CleanAll() {
 
     BUCKETS_DIR=${BUCKETS_DIR:?}
@@ -277,7 +311,6 @@ function Main() {
     TARGET=${1:?}
     shift
 
-    
     export BUCKET_NAME=nsdf-fuse-test-${TARGET}
     export BASE_DIR=${BUCKETS_DIR}/${BUCKET_NAME}
     export TEST_DIR=${BASE_DIR}/test

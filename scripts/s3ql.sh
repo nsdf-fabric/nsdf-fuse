@@ -9,7 +9,6 @@ function CreateBucket() {
     echo "CreateBucket s3ql..."
     BaseCreateBucket ${BUCKET_NAME} ${AWS_DEFAULT_REGION}
 
-    
     mkfs.s3ql \
         --cachedir ${CACHE_DIR} \
         --log ${LOG_DIR}/log \
