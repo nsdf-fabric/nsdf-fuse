@@ -40,7 +40,7 @@ function RemoveBucket() {
 
 # //////////////////////////////////////////////////////////////////
 function FuseUp() {
-    echo "FuseUp juiscefs ..."
+    echo "FuseUp juicefs ..."
     sync && DropCache
     mkdir -p ${TEST_DIR}
     juicefs mount \
@@ -49,7 +49,7 @@ function FuseUp() {
         --cache-dir=${CACHE_DIR} \
         --log=${LOG_DIR}/log.log \
         --max-uploads=150 
-    mount | grep ${TEST_DIR}
+    CheckMount
     echo "FuseUp juicefs done"
 }
 

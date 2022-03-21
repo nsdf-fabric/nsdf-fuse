@@ -72,8 +72,6 @@ function RemoveBucket() {
 	aws s3 rb s3://${BUCKET_NAME} --force
 }
 
-
-
 # //////////////////////////////////////////////////////////////////
 function FuseUp() {
     echo "FuseUp s3ql..."
@@ -86,7 +84,8 @@ function FuseUp() {
             --log ${LOG_DIR}/log \
             s3://${AWS_DEFAULT_REGION}/${BUCKET_NAME} \
             ${TEST_DIR} 
-    mount | grep ${TEST_DIR}
+    
+    CheckMount
     echo "FuseUp s3ql done"
 }
 

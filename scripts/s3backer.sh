@@ -36,7 +36,8 @@ function MountBackend() {
             --size=1T \
             --blockCacheThreads=64  \
             ${BUCKET_NAME} ${CACHE_DIR}/backend
-    mount | grep ${CACHE_DIR}
+    
+    CheckMount
     echo "MountBackend  s3backer done"
 }
 

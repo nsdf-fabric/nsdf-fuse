@@ -56,7 +56,8 @@ function FuseUp() {
         --vfs-cache-mode writes \
         --use-server-modtime \
         --cache-dir ${CACHE_DIR} 
-    mount | grep ${TEST_DIR}
+    
+    CheckMount
     echo "FuseUp rclone done"
 }
 

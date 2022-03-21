@@ -5,7 +5,14 @@ set -e
 
 # DANGEROUS (!) verbose
 # uncomment only if needed
-set -x
+if [[ "$DEBUG" == "1" ]] ; then
+	set -x
+fi
+
+KiB=$(( 1024 ))
+MiB=$(( $KiB * 1024 ))
+GiB=$(( $MiB * 1024 ))
+
 
 # /////////////////////////////////////////////////////////////////
 function DropCache() {
@@ -19,207 +26,229 @@ function Retry() {
 	local count=0
 	until "$@"; do
 		count=$(($count + 1))
-		if [ $count -lt 4 ]; then
-			echo "Retry $@ failed, retrying..."
-			sleep 3
+		if [ $count -lt 20 ]; then
+			echo "... retry attempt failed, retrying"
+			sleep 5
 		else
 			echo "Retry $@ failed , giving up."
 			exit 1
 		fi
 	done
-	echo "Retry command $? succeded"
+	echo "Retry succeded"
 	return 0
 }
 
+# /////////////////////////////////////////////////////////////////
+function CheckMount() {
+	__result__=$(mount | grep ${TEST_DIR})
+	if [ -z "$__result__" ] ; then
+		mount
+		echo "ERROR: ${TARGET} cannot mount ${TEST_DIR} "
+		exit 1
+	fi
+}
 
 # /////////////////////////////////////////////////////////////////
 function CleanAll() {
 
-    BUCKETS_DIR=${BUCKETS_DIR:?}
+	echo "Cleaning all..."
 
-    for I in {1..3}
-    do
-        
-        # unmount filesystem
-        __mounted__=$(mount | grep ${BUCKETS_DIR} | cut -d" " -f3)
-        for it in $__mounted__; do 
-            echo "Unmounting $it"
-            sudo umount -l $it
-            sudo umount -f $it
-        done
+	BUCKETS_DIR=${BUCKETS_DIR:?}
 
-        # remove buckets
-        __buckets__=$(aws s3 ls | grep "nsdf-fuse-test" | cut -d" " -f3)
-        for it in $__buckets__; do 
-            echo "Removing bucket $it"
-            echo "aws s3 rb s3://$it --force "
-            aws s3 rb s3://$it --force 
-        done
+	for I in {1..3}
+	do
+		
+		# unmount filesystem
+		__mounted__=$(mount | grep ${BUCKETS_DIR} | cut -d" " -f3)
+		for it in $__mounted__; do 
+			echo "Unmounting $it"
+			sudo umount -l $it
+			sudo umount -f $it
+		done
 
-        # remove bucket dir
-        
-        sudo rm -Rf ${BUCKETS_DIR}/*
+		# remove buckets
+		__buckets__=$(aws s3 ls | grep "nsdf-fuse-test" | cut -d" " -f3)
+		for it in $__buckets__; do 
+			echo "Removing bucket $it"
+			echo "aws s3 rb s3://$it --force "
+			aws s3 rb s3://$it --force 
+		done
 
-    done
+		# remove bucket dir
+		
+		sudo rm -Rf ${BUCKETS_DIR}/*
 
-    echo "Mount"
-    $(mount | grep ${BUCKETS_DIR} | cut -d" " -f3)
+	done
 
-    echo "Buckets"
-    $(aws s3 ls | grep "nsdf-fuse-test" | cut -d" " -f3)
+	echo "Mount"
+	$(mount | grep ${BUCKETS_DIR} | cut -d" " -f3)
 
-    echo "${BUCKETS_DIR}"
-    find ${BUCKETS_DIR}/
+	echo "Buckets"
+	$(aws s3 ls | grep "nsdf-fuse-test" | cut -d" " -f3)
+
+	echo "${BUCKETS_DIR}"
+	find ${BUCKETS_DIR}/
 }
 
 
 # /////////////////////////////////////////////////////////////////////
+function BeginTest() {
+	echo "Begin test [$1]"
+	SECONDS=0
+	pids=""
+	FuseUp
+}
+
+# /////////////////////////////////////////////////////////////////////
+function EndTest() {
+	echo "Waiting for PIDS=$pids"
+    for p in $pids; do
+        if wait $p; then
+            : # echo "process $p success"
+        else
+            echo "process $p Failure!"
+            exit 1
+        fi
+   done
+	sync 
+	FuseDown
+	echo "end test [$1] $(( ( $TOT_GB * $GiB ) / ( $MiB * ${SECONDS} ) ))MiB/sec TOT_SECONDS=$SECONDS "
+	
+}
+
+# /////////////////////////////////////////////////////////////////////
 function RunFioBenchmark() {
 
-    # example:
-    TARGET=${1:?}
-    SUB_TEST=${2:?}
+	TOT_GB=4
 
-    echo "fio tests TARGET=${TARGET} SUB_TEST=${SUB_TEST}"
+	# inspired by https://juicefs.com/docs/cloud/single_node_benchmark/
+	BeginTest fio-seq-1-write
+	fio  --name=fio-seq-1-write  --group_reporting=1 --directory=${TEST_DIR} --rw=write --bs=256k --size=${TOT_GB}G --refill_buffers 
+	EndTest fio-seq-1-write
+	nsdf-fuse ${TARGET} clean-bucket
 
-    export TEST_DIR${BUCKETS_DIR:?}/nsdf-fuse-test-${TARGET:?}/test
+	BeginTest fio-seq-1-read
+	fio  --name=fio-seq-1-read --group_reporting=1 --directory=${TEST_DIR} --rw=read --bs=256k --size=${TOT_GB}G --refill_buffers 
+	EndTest fio-seq-1-read
+	nsdf-fuse ${TARGET} clean-bucket
 
-    # for juice increment it to 8G
-    SIZE=4G
-    BS=256k
+	BeginTest fio-seq-n-write	
+	fio  --name=fio-seq-n-write --group_reporting=1 --directory=${TEST_DIR} --rw=write --bs=256k  --size=${TOT_GB}G --refill_buffers  --numjobs=16  
+	EndTest fio-seq-n-write	
+	nsdf-fuse ${TARGET} clean-bucket
 
-	function RunFio() {
-		SECONDS=0
-		nsdf-fuse $TARGET up
-		fio  --name=$SUB_TEST --group_reporting=1 --directory=${TEST_DIR} $@
-		nsdf-fuse $TARGET down
-		echo "test [$SUB_TEST] SECONDS=$SECONDS"    
-		nsdf-fuse $TARGET clean-bucket    
-	}
+	BeginTest fio-seq-n-read
+	fio  --name=fio-seq-n-read --group_reporting=1 --directory=${TEST_DIR} --rw=read --bs=256k  --size=${TOT_GB}G --refill_buffers --numjobs=16 
+	EndTest fio-seq-n-read
+	nsdf-fuse ${TARGET} clean-bucket
 
-    # inspired by https://juicefs.com/docs/cloud/single_node_benchmark/
-    if [["$SUB_TEST" == "seq-1-read"  ]] ; then
-        RunFio --rw=read --refill_buffers --bs=$BS --size=$SIZE 
-        
-    elif [["$SUB_TEST" == "seq-1-write"  ]] ; then
-        RunFio --rw=write --refill_buffers --bs=$BS --size=$SIZE 
+	BeginTest fio-rand-1-write
+	fio  --name=fio-rand-1-write --group_reporting=1 --directory=${TEST_DIR} --rw=randwrite --bs=256k --size=${TOT_GB}G --refill_buffers 
+	EndTest fio-rand-1-write
+	nsdf-fuse ${TARGET} clean-bucket
 
-    elif [["$SUB_TEST" == "seq-n-read"  ]] ; then
-        RunFio --rw=read --refill_buffers --bs=$BS  --size=$SIZE --numjobs=16 
-
-    elif [["$SUB_TEST" == "seq-n-write"  ]] ; then
-        RunFio --directory=${TEST_DIR} --rw=write --refill_buffers --bs=$BS  --size=$SIZE --numjobs=16 
-
-    elif [["$SUB_TEST" == "rand-1-read"  ]] ; then
-        RunFio --rw=randread --size=$SIZE  --bs=$BS 
-
-    elif [[ "$SUB_TEST" == "rand-1-write" ]] ; then
-        RunFio --rw=randwrite --refill_buffers --size=$SIZE --bs=$BS 
-    fi
-
+	BeginTest fio-rand-1-read
+	fio  --name=fio-rand-1-read --group_reporting=1 --directory=${TEST_DIR} --rw=randread --bs=256k  --size=${TOT_GB}G 
+	EndTest fio-rand-1-read
+	nsdf-fuse ${TARGET} clean-bucket
 }
 
 
 # ///////////////////////////////////////////////////////////////////////
 function RunSimpleBenchmark() {
 
-    TARGET=${1:?}
-    SUB_TEST=${2:-all}
+	REMOTE=${TEST_DIR:?}
+	LOCAL=/tmp/simple-benchmark
 
-    SIMPLE_LOCAL=/tmp/simple-local/nsdf-fuse-test-${TARGET:?}/test
-    
-    SEQ_GB=2
-    RAN_GB=2
-    NUM_JOBS=16
+	# ////////////////////////////////////////// 
+	# sequential
 
-    SERIAL=0
-    PARALLEL=1
+	# note: internally creating only one file of 1GB
+	if [[ "1" == "1" ]] ; then
+		TOT_GB=8
 
-	function RunSingle() {
+		# generate 1Gib File
+		mkdir -p $LOCAL
+		rm -Rf $LOCAL/*
+		head -c $GiB /dev/urandom > $LOCAL/1GB
 
-		SUB_TEST=$1
-		NUM_JOBS=$2
-		NUM_FILES=$3
-		FILESIZE=$4
-		PARALLEL=$5
+		# simple-seq-1
+		BeginTest simple-seq-1-write
+		for (( I=0 ; I < TOT_GB ; I++ )) ; do 
+		  cp $LOCAL/1GB $REMOTE/$I 
+		done
+		EndTest simple-seq-1-write
 
-		TOT=$(( $NUM_JOBS * $NUM_FILES * $FILESIZE ))
+		BeginTest simple-seq-1-read
+		for (( I=0 ;  I < TOT_GB ; I++ )) ; do 
+		  cp $REMOTE/$I /dev/null 
+		done
+		EndTest simple-seq-1-read
 
-		echo "[$SUB_TEST] start (NUM_JOBS=$NUM_JOBS NUM_FILES=$NUM_FILES FILESIZE=$FILESIZE PARALLEL=$PARALLEL) TOT=$(( TOT / $MiB))MB"
+		nsdf-fuse ${TARGET} clean-bucket
 
-		function GenerateLocalFiles() {
-			NUM_JOBS=$1
-			NUM_FILES=$2
-			FILESIZE=$3
+		# simple-seq-n
+		BeginTest simple-seq-n-write
+		for (( I=0 ; I < TOT_GB ; I++ )) ; do 
+			cp $LOCAL/1GB $REMOTE/$I & 
+			pids+=" $!"
+		done
+		EndTest simple-seq-n-write
 
-			echo "Generating ${NUM_FILES} files  of size ${FILESIZE}"
+		BeginTest simple-seq-n-read
+		for (( I=0 ; I < TOT_GB ; I++ )) ; do 
+			cp $REMOTE/$I /dev/null & 
+			pids+=" $!"
+		done
+		EndTest simple-seq-n-read
 
-			# using the same directory to avoid disk waste
-			mkdir -p $SIMPLE_LOCAL/0
-			for (( FILE_ID=0 ; FILE_ID<NUM_FILES ; FILE_ID++ )) ; do 
-				__filename_=$SIMPLE_LOCAL/0/file.$( printf %04d $FILE_ID)
-				head -c ${FILESIZE} /dev/urandom > ${__filename_}
-				cp ${__filename_} /dev/null # cache in memory
-			done
-			wait && sync
-		}
+		nsdf-fuse ${TARGET} clean-bucket
+	fi
 
-		# local -> cloud
-		if [[ "$SUB_TEST" == *"write"* ]] ; then
-			GenerateLocalFiles $NUM_JOBS $NUM_FILES $FILESIZE
+	# ///////////////////////////////////////////////
+	# random
 
-			nsdf-fuse $TARGET up
+	if [[ "1" == "1" ]] ; then
 
-			for ((JOB_ID=0;JOB_ID< NUM_JOBS; JOB_ID++)) ;  do
-					mkdir -p $TEST_DIR/$JOB_ID
-			done
+		# 16 jobs in parallel, each job handling 2048 files of 64KB each, TOT=16*2048*65536=2GB
+		# note: internally creating 2048*64Kb==128MiB
+		NUM_JOBS=16
+		NUM_FILES=2048
+		FILESIZE=65536
+		TOT_GB=$(( ( $NUM_JOBS * $NUM_FILES * $FILESIZE ) / ($GiB) ))  
 
-			SECONDS=0
-			for ((JOB_ID=0;JOB_ID< NUM_JOBS; JOB_ID++)) ;  do
-					echo "Running job $JOB_ID"
-					if [[ "$PARALLEL" == "1" ]] ; then
-						cp $SIMPLE_LOCAL/0/* $TEST_DIR/$JOB_ID/ &
-					else
-						cp $SIMPLE_LOCAL/0/* $TEST_DIR/$JOB_ID/
-					fi
+		mkdir -p $LOCAL
+		rm -Rf $LOCAL/*
 
-			done
-			wait
-			nsdf-fuse $TARGET down
-			rm -Rf $SIMPLE_LOCAL/*
+		# generate random files
+		for (( I=0 ; I < NUM_FILES ; I++ )) ; do 
+			head -c $FILESIZE /dev/urandom > $LOCAL/$I 
+		done
 
-		# cloud -> /dev/null
-		else
-			nsdf-fuse $TARGET up
-			SECONDS=0
-			for ((JOB_ID=0;JOB_ID< NUM_JOBS; JOB_ID++)) ;  do
-					
-					echo "Running job $JOB_ID"
-					if [[ "$PARALLEL" == "1" ]] ; then
-						find $TEST_DIR/$JOB_ID -type f -exec cp "{}" /dev/null \; &
-					else
-						find $TEST_DIR/$JOB_ID -type f -exec cp "{}" /dev/null \;
-					fi
-			done
-			wait
-			nsdf-fuse $TARGET down
-		fi
-		
-		echo "[$SUB_TEST] end SECONDS=${SECONDS} $(( $TOT / $MiB ))MiB $(( $TOT / ( $MiB * $SECONDS ) ))MiB/sec" 
-		echo " "    
-	}
+		# create directories
+		FuseUp
+		for (( I=0 ; I < NUM_JOBS ; I++ )) ; do 
+			mkdir -p $REMOTE/$I
+		done
+		FuseDown
 
-    # NUM_JOBS  NUM_FILES  FILESIZE PARALLEL
-    if [[ "$SUB_TEST" == "seq-1-write" || "$SUB_TEST" == "seq-1-read"  ]] ; then
-        RunSingle $SUB_TEST $SEQ_GB 1 $GiB $SERIAL # TOT=SEQ_GB note I am creating only 1GiB file in $SEQ_GB directoies)
-    
-    elif [[ "$SUB_TEST" == "seq-n-write" || "$SUB_TEST" == "seq-n-read" ]] ; then
-        RunSingle $SUB_TEST $NUM_JOBS 1 $(( ($SEQ_GB * $GiB) / $NUM_JOBS )) $PARALLEL # TOT=$SEQ_GB
+		# simple-rand-n
+		BeginTest simple-rand-n-write
+		for (( I=0 ; I < NUM_JOBS ; I++ )) ; do 
+			find $LOCAL -type f -exec cp "{}" $REMOTE/$I/ \; & 
+			pids+=" $!"
+		done
+		EndTest simple-rand-n-write
 
-    elif [[ "$SUB_TEST" == "rand-n-write" || "$SUB_TEST" == "rand-n-read" ]] ; then
-        RunSingle $SUB_TEST $NUM_JOBS $(( ($RAN_GB * GiB) / ( 64 * KiB * $NUM_JOBS )  )) $(( 64 * KiB )) $PARALLEL # TOT $RAN_GB
+		BeginTest simple-rand-n-read
+		for (( I=0 ; I < NUM_JOBS ; I++ )) ; do 
+			find $REMOTE/$I -type f -exec cp "{}" /dev/null \; & 
+			pids+=" $!"
+		done
+		EndTest simple-rand-n-read
 
-    fi
+		nsdf-fuse ${TARGET} clean-bucket
+	fi
 }
 
 # //////////////////////////////////////////////////////////////////////////
@@ -246,134 +275,134 @@ function InstallFIO() {
 # //////////////////////////////////////////////////////////////////
 function Main() {
 
-    # all test are meant to be temporary
-    export BUCKETS_DIR=/tmp/buckets
-    mkdir -p $BUCKETS_DIR
+	# all test are meant to be temporary
+	export BUCKETS_DIR=/tmp/buckets
+	mkdir -p $BUCKETS_DIR
 
-    if [[ "$1" == "clean-all" ]] ; then
-        CleanAll && exit 0
+	if [[ "$1" == "clean-all" ]] ; then
+		CleanAll
+		exit 0
 
-    elif [[ "$1" == "update-os" ]] ; then
-        UpdateOS && exit 0
+	elif [[ "$1" == "update-os" ]] ; then
+		UpdateOS
+		exit 0
 
-    elif [[ "$1" == "install-fio" ]] ; then
-        InstallFIO && exit 0
-    fi
+	elif [[ "$1" == "install-fio" ]] ; then
+		InstallFIO
+		exit 0
+	fi
 
-    # target specific
-    TARGET=${1:?}
-    shift
+	# target specific
+	TARGET=${1:?}
+	shift
 
-    export BUCKET_NAME=nsdf-fuse-test-${TARGET}
-    export BASE_DIR=${BUCKETS_DIR}/${BUCKET_NAME}
-    export TEST_DIR=${BASE_DIR}/test
-    export CACHE_DIR=${BASE_DIR}/cache
-    export LOG_DIR=${BASE_DIR}/log
+	export BUCKET_NAME=nsdf-fuse-test-${TARGET}
+	export BASE_DIR=${BUCKETS_DIR}/${BUCKET_NAME}
+	export TEST_DIR=${BASE_DIR}/test
+	export CACHE_DIR=${BASE_DIR}/cache
+	export LOG_DIR=${BASE_DIR}/log
 
-    echo "# Current configuration:"
-    echo "   BUCKET_NAME:        ${BUCKET_NAME}"
-    echo "   AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION}"
-    echo "   BASE_DIR:           ${BASE_DIR}"
-    echo "   TEST_DIR:           ${TEST_DIR}"
-    echo "   CACHE_DIR:          ${CACHE_DIR}"
-    echo "   LOG_DIR:            ${LOG_DIR}"
-    echo ""
+	echo "# BUCKET_NAME=${BUCKET_NAME} AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION} BASE_DIR=${BASE_DIR} TEST_DIR=${TEST_DIR} CACHE_DIR=${CACHE_DIR} LOG_DIR=${LOG_DIR}"
 
-	     # make sure I have all the directories
-    mkdir  -p ${BASE_DIR}  || true
-    mkdir  -p ${TEST_DIR}  || true
-    mkdir  -p ${CACHE_DIR} || true
-    mkdir  -p ${LOG_DIR}   || true
+		 # make sure I have all the directories
+	mkdir  -p ${BASE_DIR}  || true
+	mkdir  -p ${TEST_DIR}  || true
+	mkdir  -p ${CACHE_DIR} || true
+	mkdir  -p ${LOG_DIR}   || true
 
 
-    # add some functions (as CreateBucket, RemoveBucket, FuseUp and FuseDown)
-    if   [[  "${TARGET}" == "geesefs" ]] ; then 
-        source scripts/geesefs.sh 
+	# add some functions (as CreateBucket, RemoveBucket, FuseUp and FuseDown)
+	if   [[  "${TARGET}" == "geesefs" ]] ; then 
+		source scripts/geesefs.sh 
 
-    elif [[  "${TARGET}" == "goofys"  ]] ; then 
-        source scripts/goofys.sh 
+	elif [[  "${TARGET}" == "goofys"  ]] ; then 
+		source scripts/goofys.sh 
 
-    elif [[  "${TARGET}" == "juicefs" ]] ; then 
-        source scripts/juicefs.sh 
+	elif [[  "${TARGET}" == "juicefs" ]] ; then 
+		source scripts/juicefs.sh 
 
-    elif [[  "${TARGET}" == "objectivefs" ]] ; then 
-        source scripts/objectivefs.sh
+	elif [[  "${TARGET}" == "objectivefs" ]] ; then 
+		source scripts/objectivefs.sh
 
-    elif [[  "${TARGET}" == "rclone" ]] ; then 
-        source scripts/rclone.sh     
+	elif [[  "${TARGET}" == "rclone" ]] ; then 
+		source scripts/rclone.sh	 
 
-    elif [[  "${TARGET}" == "s3backer" ]] ; then 
-        source scripts/s3backer.sh
+	elif [[  "${TARGET}" == "s3backer" ]] ; then 
+		source scripts/s3backer.sh
 
-    elif [[  "${TARGET}" == "s3fs" ]] ; then 
-        source scripts/s3fs.sh
+	elif [[  "${TARGET}" == "s3fs" ]] ; then 
+		source scripts/s3fs.sh
 		  
-    elif [[  "${TARGET}" == "s3ql" ]] ; then 
-        source scripts/s3ql.sh
+	elif [[  "${TARGET}" == "s3ql" ]] ; then 
+		source scripts/s3ql.sh
 		  
-    else
-        echo "ERROR: unknown TARGET=${TARGET}"
-    fi
+	else
+		echo "ERROR: unknown TARGET=${TARGET}"
+	fi
 
-    # //////////////////////////////////////////////////////////////
-    while (( "$#" )) ; do
+	# //////////////////////////////////////////////////////////////
+	while (( "$#" )) ; do
 
-        set -e
+		set -e
 
-        ACTION=${1:?}
-        shift
+		ACTION=${1:?}
+		shift
 
-        echo "# /////////////////////////////////////////////////////"
-        echo "[${ACTION}] begin" 
+		echo "Begin ACTION=${ACTION}" 
 
+		if [[ "${ACTION}" == "install" ]] ; then
+			Install_${TARGET}
 
-			if [[ "${ACTION}" == "install" ]] ; then
-				Install_${TARGET}
+		elif [[ "${ACTION}" == "uninstall" ]] ; then
+			Uninstall_${TARGET}
 
-		  elif [[ "${ACTION}" == "uninstall" ]] ; then
-				Uninstall_${TARGET}
+		elif [[ "${ACTION}" == "create-bucket" ]] ; then
+			CreateBucket 
+			aws s3 ls | grep ${BUCKET_NAME}
 
-        elif [[ "${ACTION}" == "create-bucket" ]] ; then
-            CreateBucket && aws s3 ls | grep ${BUCKET_NAME}
+		elif [[ "${ACTION}" == "remove-bucket" ]] ; then
+			RemoveBucket 
+			aws s3 ls
 
-        elif [[ "${ACTION}" == "remove-bucket" ]] ; then
-            RemoveBucket && aws s3 ls
+		elif [[ "${ACTION}" == "clean-bucket" ]] ; then
+			SECONDS=0
+			FuseUp 
+			rm -Rf ${TEST_DIR}/* 
+			FuseDown
+			echo "${ACTION} done. Seconds: ${SECONDS}"
 
-        elif [[ "${ACTION}" == "clean-bucket" ]] ; then
-            SECONDS=0
-            FuseUp && time -p rm -Rf ${TEST_DIR}/* && FuseDown
-            echo "${ACTION} done. Seconds: $SECONDS"
+		elif [[ "${ACTION}" == "up" ]] ; then
+			FuseUp 
 
-        elif [[ "${ACTION}" == "up" ]] ; then
-            FuseUp 
+		elif [[ "${ACTION}" == "down" ]] ; then
+			FuseDown 
 
-        elif [[ "${ACTION}" == "down" ]] ; then
-            FuseDown 
+		elif [[ "${ACTION}" == "find" ]] ; then
+			FuseUp 
+			find ${TEST_DIR} 
+			FuseDown 
 
-        elif [[ "${ACTION}" == "find" ]] ; then
-            FuseUp && find ${TEST_DIR} && FuseDown 
+		elif [[ "${ACTION}" == "touch" ]] ; then
+			echo "it is working" > $TEST_DIR/it_is_working
 
-        elif [[ "${ACTION}" == "touch" ]] ; then
-            echo "it is working" > $TEST_DIR/it_is_working
+		# "WARNING: remember to create-bucket
+		elif [[ "${ACTION}" == "fio-benchmark" ]] ; then
+			RunFioBenchmark
+			exit 0
 
-        # "WARNING: remember to create-bucket
-		  # You can also check network traffic by:
-		  # nload -u M -U M
-        elif [[ "${ACTION}" == "fio-benchmark" ]] ; then
-            RunFioBenchmark $@
+		elif [[ "${ACTION}" == "simple-benchmark" ]] ; then
+			RunSimpleBenchmark
+			exit 0
 
-        elif [[ "${ACTION}" == "simple-benchmark" ]] ; then
-            RunSimpleBenchmark $@
+		else
+			echo "ERROR: unknown ACTION=${ACTION}"
+			exit 1
+		fi
 
-        else
-            echo "ERROR: unknown ACTION=${ACTION}"
-            exit 1
-        fi
+		echo "End ACTION=${ACTION}"
+		echo ""
 
-        echo "[${ACTION}] end"
-        echo ""
-
-    done
+	done
 }
 
 if [[ $# -ge 1 ]]; then

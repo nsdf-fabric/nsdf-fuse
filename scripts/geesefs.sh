@@ -51,16 +51,15 @@ function FuseUp() {
     # memory limit is in MB
     geesefs \
         --cache ${CACHE_DIR} \
-        --log-file ${LOG_DIR}/log.txt \
         --no-checksum \
         --max-flushers 32 \
         --max-parallel-parts 32 \
         --part-sizes 25 \
         --endpoint https://s3.${AWS_DEFAULT_REGION}.amazonaws.com \
         ${BUCKET_NAME} \
-        ${TEST_DIR} || true # the command does not return 0 (weird)
-    mount | grep ${TEST_DIR}
-    echo "FuseUp  geesefs done"
+        ${TEST_DIR}
+    CheckMount
+    echo "FuseUp geesefs done"
 }
 
 # //////////////////////////////////////////////////////////////////

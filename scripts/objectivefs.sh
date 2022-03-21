@@ -77,10 +77,9 @@ function FuseUp() {
         -o mt \
         s3://${BUCKET_NAME} \
         ${TEST_DIR}
-    sudo mount | grep ${TEST_DIR}
+    CheckMount
     sudo chmod a+rwX -R ${TEST_DIR}
-
-    echo "FuseUp objectivefs don"
+    echo "FuseUp objectivefs done"
 }
 
 # //////////////////////////////////////////////////////////////////

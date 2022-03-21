@@ -46,7 +46,8 @@ function RemoveBucket() {
 # //////////////////////////////////////////////////////////////////
 function FuseUp() {
     echo "FuseUp s3fs..."
-    sync && DropCache
+    sync 
+	 DropCache
     mkdir -p ${TEST_DIR}
 
     # disablng caching
@@ -60,10 +61,9 @@ function FuseUp() {
         -o multipart_size=52 \
         -o parallel_count=30 \
         -o multireq_max=30 \
-        -o allow_other \
-        -d
-    
-    mount | grep ${TEST_DIR}
+        -o allow_other 
+
+    CheckMount
     echo "FuseUp s3fs done"
 }
 

@@ -14,7 +14,6 @@ function Install_goofys() {
 # //////////////////////////////////////////////////////////////////////////
 function Uninstall_goofys() {
 	sudo rm -f /usr/bin/goofys
-	rm -f ${HOME}/.aws/credentials
 }
 
 
@@ -37,10 +36,9 @@ function FuseUp() {
     echo "FuseUp goofys..."
     sync && DropCache
     mkdir -p ${TEST_DIR}
-
     # Goofys does not have an on disk data cache (checkout catfs)
     goofys --region ${AWS_DEFAULT_REGION} ${BUCKET_NAME} ${TEST_DIR}
-    mount | grep ${TEST_DIR}
+    CheckMount
     echo "FuseUp goofys done"
 }
 
