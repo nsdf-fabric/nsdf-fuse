@@ -2,6 +2,25 @@
 
 # IMPORTANT: internally the real bucket name will be juicefs-${BUCKET_NAME}
 
+
+
+# //////////////////////////////////////////////////////////////////////////
+function Install_juicefs() {
+	echo "NOTE you need to create a File System named `juicefs-nsdf-fuse-test-juicefs` (see https://juicefs.com/console/)."
+	wget -q https://juicefs.com/static/juicefs
+	sudo mv juicefs /usr/bin
+	chmod +x /usr/bin/juicefs
+
+	# check the version
+	juicefs version	
+}
+
+# //////////////////////////////////////////////////////////////////////////
+function Uninstall_juicefs() {
+	sudo rm -f /usr/bin/juicefs
+}
+
+
 # //////////////////////////////////////////////////////////////////
 function CreateBucket() {
     echo "CreateBucket  juicefs..."
@@ -16,13 +35,14 @@ function CreateBucket() {
 # //////////////////////////////////////////////////////////////////
 function RemoveBucket() {
     # note: there is a prefix
-    BaseRemoveBucket juicefs-${BUCKET_NAME}
+	aws s3 rb s3://juicefs-${BUCKET_NAME} --force
 }
 
 # //////////////////////////////////////////////////////////////////
 function FuseUp() {
     echo "FuseUp juiscefs ..."
     sync && DropCache
+    mkdir -p ${TEST_DIR}
     juicefs mount \
         ${BUCKET_NAME} \
         ${TEST_DIR} \

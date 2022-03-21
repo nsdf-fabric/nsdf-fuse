@@ -3,39 +3,34 @@
 # when any command fails
 set -e 
 
+# DANGEROUS (!) verbose
+# uncomment only if needed
+set -x
+
 # /////////////////////////////////////////////////////////////////
 function DropCache() {
-    TODO
+	# see https://www.tecmint.com/clear-ram-memory-cache-buffer-and-swap-space-on-linux/
+	sync
+	sudo sh -c "/usr/bin/echo 3 > /proc/sys/vm/drop_caches"
 }
 
 # /////////////////////////////////////////////////////////////////
 function Retry() {
-    TODO
+	local count=0
+	until "$@"; do
+		count=$(($count + 1))
+		if [ $count -lt 4 ]; then
+			echo "Retry $@ failed, retrying..."
+			sleep 3
+		else
+			echo "Retry $@ failed , giving up."
+			exit 1
+		fi
+	done
+	echo "Retry command $? succeded"
+	return 0
 }
 
-functio SudoRetry() {
-    TODO
-}
-
-
-
-# /////////////////////////////////////////////////////////////////
-function BaseRemoveBucket() {
-    TODO
-    NAME=${1:?}
-    aws s3 rb s3://${NAME} --force
-}
-
-
-# /////////////////////////////////////////////////////////////////
-function BaseCreateBucket()
-{
-    BUCKET_NAME=${1:?}
-    REGION=${2:?}
-    TODO
-    aws s3 crea
-    ${BUCKET_NAME} ${AWS_DEFAULT_REGION}
-}
 
 # /////////////////////////////////////////////////////////////////
 function CleanAll() {
@@ -77,19 +72,9 @@ function CleanAll() {
     find ${BUCKETS_DIR}/
 }
 
-# /////////////////////////////////////////////////////////////////////
-function RunFio() {
-    SECONDS=0
-    nsdf-fuse $TARGET up
-    fio  --name=$SUB_TEST --group_reporting=1 --directory=${TEST_DIR} $@
-    nsdf-fuse $TARGET down
-    echo "test [$SUB_TEST] SECONDS=$SECONDS"    
-    nsdf-fuse $TARGET clean-bucket    
-}
-
 
 # /////////////////////////////////////////////////////////////////////
-function RunBenchmarkFio() {
+function RunFioBenchmark() {
 
     # example:
     TARGET=${1:?}
@@ -103,153 +88,46 @@ function RunBenchmarkFio() {
     SIZE=4G
     BS=256k
 
-    echo "# /////////////////////////////////////"
-    echo "# Remeber to create the bucket"
-    echo "# /////////////////////////////////////"
-
-    # example:
-    # nsdf-fuse $TARGET benchmark fio
-    if [["$SUB_TEST" == "fio"  ]] ; then 
-        nsdf-fuse $TARGET benchmark fio-seq-1-read
-        nsdf-fuse $TARGET benchmark fio-seq-1-write
-        nsdf-fuse $TARGET benchmark fio-seq-n-read
-        nsdf-fuse $TARGET benchmark fio-seq-n-write
-        nsdf-fuse $TARGET benchmark fio-rand-1-read
-        nsdf-fuse $TARGET benchmark fio-rand-1-write
-        exit 0
-    fi
+	function RunFio() {
+		SECONDS=0
+		nsdf-fuse $TARGET up
+		fio  --name=$SUB_TEST --group_reporting=1 --directory=${TEST_DIR} $@
+		nsdf-fuse $TARGET down
+		echo "test [$SUB_TEST] SECONDS=$SECONDS"    
+		nsdf-fuse $TARGET clean-bucket    
+	}
 
     # inspired by https://juicefs.com/docs/cloud/single_node_benchmark/
-    if [["$SUB_TEST" == "fio-seq-1-read"  ]] ; then
+    if [["$SUB_TEST" == "seq-1-read"  ]] ; then
         RunFio --rw=read --refill_buffers --bs=$BS --size=$SIZE 
         
-    elif [["$SUB_TEST" == "fio-seq-1-write"  ]] ; then
+    elif [["$SUB_TEST" == "seq-1-write"  ]] ; then
         RunFio --rw=write --refill_buffers --bs=$BS --size=$SIZE 
 
-    elif [["$SUB_TEST" == "fio-seq-n-read"  ]] ; then
+    elif [["$SUB_TEST" == "seq-n-read"  ]] ; then
         RunFio --rw=read --refill_buffers --bs=$BS  --size=$SIZE --numjobs=16 
 
-    elif [["$SUB_TEST" == "fio-seq-n-write"  ]] ; then
+    elif [["$SUB_TEST" == "seq-n-write"  ]] ; then
         RunFio --directory=${TEST_DIR} --rw=write --refill_buffers --bs=$BS  --size=$SIZE --numjobs=16 
 
-    elif [["$SUB_TEST" == "fio-rand-1-read"  ]] ; then
+    elif [["$SUB_TEST" == "rand-1-read"  ]] ; then
         RunFio --rw=randread --size=$SIZE  --bs=$BS 
 
-    elif [[ "$SUB_TEST" == "fio-rand-1-write" ]] ; then
+    elif [[ "$SUB_TEST" == "rand-1-write" ]] ; then
         RunFio --rw=randwrite --refill_buffers --size=$SIZE --bs=$BS 
     fi
 
 }
 
 
-# /////////////////////////////////////////////////////////////////////
-function GenerateSimpleLocalFiles() {
-    NUM_JOBS=$1
-    NUM_FILES=$2
-    FILESIZE=$3
-
-    echo "Generating ${NUM_FILES} files  of size ${FILESIZE}"
-
-    # using the same directory to avoid disk waste
-    mkdir -p $SIMPLE_LOCAL/0
-    for (( FILE_ID=0 ; FILE_ID<NUM_FILES ; FILE_ID++ )) ; do 
-        __filename_=$SIMPLE_LOCAL/0/file.$( printf %04d $FILE_ID)
-        head -c ${FILESIZE} /dev/urandom > ${__filename_}
-        cp ${__filename_} /dev/null # cache in memory
-    done
-    wait && sync
-}
-
-# /////////////////////////////////////////////////////////////////////
-function RunBenchmarkSimpleStep() {
-
-    SUB_TEST=$1
-    NUM_JOBS=$2
-    NUM_FILES=$3
-    FILESIZE=$4
-    PARALLEL=$5
-
-    TOT=$(( $NUM_JOBS * $NUM_FILES * $FILESIZE ))
-
-    echo "[$SUB_TEST] start (NUM_JOBS=$NUM_JOBS NUM_FILES=$NUM_FILES FILESIZE=$FILESIZE PARALLEL=$PARALLEL) TOT=$(( TOT / $MiB))MB"
-
-    # local -> cloud
-    if [[ "$SUB_TEST" == *"write"* ]] ; then
-        GenerateSimpleLocalFiles $NUM_JOBS $NUM_FILES $FILESIZE
-
-        nsdf-fuse $TARGET up
-
-        for ((JOB_ID=0;JOB_ID< NUM_JOBS; JOB_ID++)) ;  do
-            mkdir -p $TEST_DIR/$JOB_ID
-        done
-
-        SECONDS=0
-        for ((JOB_ID=0;JOB_ID< NUM_JOBS; JOB_ID++)) ;  do
-            echo "Running job $JOB_ID"
-            if [[ "$PARALLEL" == "1" ]] ; then
-                cp $SIMPLE_LOCAL/0/* $TEST_DIR/$JOB_ID/ &
-            else
-                cp $SIMPLE_LOCAL/0/* $TEST_DIR/$JOB_ID/
-            fi
-
-        done
-        wait
-        nsdf-fuse $TARGET down
-        rm -Rf $SIMPLE_LOCAL/*
-
-    # cloud -> /dev/null
-    else
-        nsdf-fuse $TARGET up
-        SECONDS=0
-        for ((JOB_ID=0;JOB_ID< NUM_JOBS; JOB_ID++)) ;  do
-            
-            echo "Running job $JOB_ID"
-            if [[ "$PARALLEL" == "1" ]] ; then
-                find $TEST_DIR/$JOB_ID -type f -exec cp "{}" /dev/null \; &
-            else
-                find $TEST_DIR/$JOB_ID -type f -exec cp "{}" /dev/null \;
-            fi
-        done
-        wait
-        nsdf-fuse $TARGET down
-    fi
-    
-    echo "[$SUB_TEST] end SECONDS=${SECONDS} $(( $TOT / $MiB ))MiB $(( $TOT / ( $MiB * $SECONDS ) ))MiB/sec" 
-    echo " "    
-}
-
-
 # ///////////////////////////////////////////////////////////////////////
-function RunBenchmarkSimple() {
+function RunSimpleBenchmark() {
 
     TARGET=${1:?}
     SUB_TEST=${2:-all}
 
     SIMPLE_LOCAL=/tmp/simple-local/nsdf-fuse-test-${TARGET:?}/test
     
-    # example:
-    # nsdf-fuse $TARGET benchmark simple
-    if [[ "$SUB_TEST" == "simple" ]] ; then
-
-        nsdf-fuse   $TARGET create-bucket
-
-        nsdf-fuse   $TARGET benchmark simple-seq-1-write
-        nsdf-fuse   $TARGET benchmark simple-seq-1-read
-        nsdf-fuse   $TARGET clean-bucket 1>/dev/null
-
-        nsdf-fuse   $TARGET benchmark simple-seq-n-write
-        nsdf-fuse   $TARGET benchmark simple-seq-n-read
-        nsdf-fuse   $TARGET clean-bucket 1>/dev/null
-
-        nsdf-fuse   $TARGET benchmark simple-rand-n-write
-        nsdf-fuse   $TARGET benchmark simple-rand-n-read
-
-        nsdf-fuse   $TARGET clean-bucket 1>/dev/null
-        nsdf-fuse   $TARGET remove-bucket 1>/dev/null
-
-        exit 0
-    fi
-
     SEQ_GB=2
     RAN_GB=2
     NUM_JOBS=16
@@ -257,18 +135,112 @@ function RunBenchmarkSimple() {
     SERIAL=0
     PARALLEL=1
 
+	function RunSingle() {
+
+		SUB_TEST=$1
+		NUM_JOBS=$2
+		NUM_FILES=$3
+		FILESIZE=$4
+		PARALLEL=$5
+
+		TOT=$(( $NUM_JOBS * $NUM_FILES * $FILESIZE ))
+
+		echo "[$SUB_TEST] start (NUM_JOBS=$NUM_JOBS NUM_FILES=$NUM_FILES FILESIZE=$FILESIZE PARALLEL=$PARALLEL) TOT=$(( TOT / $MiB))MB"
+
+		function GenerateLocalFiles() {
+			NUM_JOBS=$1
+			NUM_FILES=$2
+			FILESIZE=$3
+
+			echo "Generating ${NUM_FILES} files  of size ${FILESIZE}"
+
+			# using the same directory to avoid disk waste
+			mkdir -p $SIMPLE_LOCAL/0
+			for (( FILE_ID=0 ; FILE_ID<NUM_FILES ; FILE_ID++ )) ; do 
+				__filename_=$SIMPLE_LOCAL/0/file.$( printf %04d $FILE_ID)
+				head -c ${FILESIZE} /dev/urandom > ${__filename_}
+				cp ${__filename_} /dev/null # cache in memory
+			done
+			wait && sync
+		}
+
+		# local -> cloud
+		if [[ "$SUB_TEST" == *"write"* ]] ; then
+			GenerateLocalFiles $NUM_JOBS $NUM_FILES $FILESIZE
+
+			nsdf-fuse $TARGET up
+
+			for ((JOB_ID=0;JOB_ID< NUM_JOBS; JOB_ID++)) ;  do
+					mkdir -p $TEST_DIR/$JOB_ID
+			done
+
+			SECONDS=0
+			for ((JOB_ID=0;JOB_ID< NUM_JOBS; JOB_ID++)) ;  do
+					echo "Running job $JOB_ID"
+					if [[ "$PARALLEL" == "1" ]] ; then
+						cp $SIMPLE_LOCAL/0/* $TEST_DIR/$JOB_ID/ &
+					else
+						cp $SIMPLE_LOCAL/0/* $TEST_DIR/$JOB_ID/
+					fi
+
+			done
+			wait
+			nsdf-fuse $TARGET down
+			rm -Rf $SIMPLE_LOCAL/*
+
+		# cloud -> /dev/null
+		else
+			nsdf-fuse $TARGET up
+			SECONDS=0
+			for ((JOB_ID=0;JOB_ID< NUM_JOBS; JOB_ID++)) ;  do
+					
+					echo "Running job $JOB_ID"
+					if [[ "$PARALLEL" == "1" ]] ; then
+						find $TEST_DIR/$JOB_ID -type f -exec cp "{}" /dev/null \; &
+					else
+						find $TEST_DIR/$JOB_ID -type f -exec cp "{}" /dev/null \;
+					fi
+			done
+			wait
+			nsdf-fuse $TARGET down
+		fi
+		
+		echo "[$SUB_TEST] end SECONDS=${SECONDS} $(( $TOT / $MiB ))MiB $(( $TOT / ( $MiB * $SECONDS ) ))MiB/sec" 
+		echo " "    
+	}
+
     # NUM_JOBS  NUM_FILES  FILESIZE PARALLEL
-
-    if [[ "$SUB_TEST" == "simple-seq-1-write" || "$SUB_TEST" == "simple-seq-1-read"  ]] ; then
-        RunBenchmarkSimpleStep $SUB_TEST $SEQ_GB 1 $GiB $SERIAL # TOT=SEQ_GB note I am creating only 1GiB file in $SEQ_GB directoies)
+    if [[ "$SUB_TEST" == "seq-1-write" || "$SUB_TEST" == "seq-1-read"  ]] ; then
+        RunSingle $SUB_TEST $SEQ_GB 1 $GiB $SERIAL # TOT=SEQ_GB note I am creating only 1GiB file in $SEQ_GB directoies)
     
-    elif [[ "$SUB_TEST" == "simple-seq-n-write" || "$SUB_TEST" == "simple-seq-n-read" ]] ; then
-        RunBenchmarkSimpleStep $SUB_TEST $NUM_JOBS 1 $(( ($SEQ_GB * $GiB) / $NUM_JOBS )) $PARALLEL # TOT=$SEQ_GB
+    elif [[ "$SUB_TEST" == "seq-n-write" || "$SUB_TEST" == "seq-n-read" ]] ; then
+        RunSingle $SUB_TEST $NUM_JOBS 1 $(( ($SEQ_GB * $GiB) / $NUM_JOBS )) $PARALLEL # TOT=$SEQ_GB
 
-    elif [[ "$SUB_TEST" == "simple-rand-n-write" || "$SUB_TEST" == "simple-rand-n-read" ]] ; then
-        RunBenchmarkSimpleStep $SUB_TEST $NUM_JOBS $(( ($RAN_GB * GiB) / ( 64 * KiB * $NUM_JOBS )  )) $(( 64 * KiB )) $PARALLEL # TOT $RAN_GB
+    elif [[ "$SUB_TEST" == "rand-n-write" || "$SUB_TEST" == "rand-n-read" ]] ; then
+        RunSingle $SUB_TEST $NUM_JOBS $(( ($RAN_GB * GiB) / ( 64 * KiB * $NUM_JOBS )  )) $(( 64 * KiB )) $PARALLEL # TOT $RAN_GB
 
     fi
+}
+
+# //////////////////////////////////////////////////////////////////////////
+function UpdateOS() {
+	sudo apt -qq update
+	sudo apt -qq install -y nload expect python3 python3-pip awscli fuse libfuse-dev net-tools
+}
+
+# //////////////////////////////////////////////////////////////////////////
+function InstallFIO() {
+	git clone https://github.com/axboe/fio
+	pushd fio
+	./configure
+	make 
+	sudo make install
+	sudo cp /usr/local/bin/fio /usr/bin/fio 
+	popd
+	rm -Rf fio
+
+	# check the version
+	fio --version
 }
 
 # //////////////////////////////////////////////////////////////////
@@ -278,34 +250,15 @@ function Main() {
     export BUCKETS_DIR=/tmp/buckets
     mkdir -p $BUCKETS_DIR
 
-    ACTION=${1:-help}
+    if [[ "$1" == "clean-all" ]] ; then
+        CleanAll && exit 0
 
-    # target agnostic
-    if [[ "$ACTION" == "help" ]] ; then
-        shift
-        echo "todo: write help"
-        exit 0
+    elif [[ "$1" == "update-os" ]] ; then
+        UpdateOS && exit 0
 
-    elif [[ "$ACTION" == "clean-all" ]] ; then
-        shift
-        CleanAll       
-        exit 0
-
-    elif [[ "$ACTION" == "quick-check" ]] ; then
-
-        shift
-
-        # missing s3ql which is not compatible with others (fuse3 vs fuse)
-        TARGETS="juicefs  goofys geesefs objectivefs rclone s3backer s3fs"
-
-        # todo s3ql (fuse3 not compatible with others)
-        for TARGET in ${TARGETS}; do
-            nsdf-fuse $TARGET create-bucket up touch down clean-bucket remove-bucket 
-        done
-
-        exit 0   
+    elif [[ "$1" == "install-fio" ]] ; then
+        InstallFIO && exit 0
     fi
-    uset ACTION
 
     # target specific
     TARGET=${1:?}
@@ -326,32 +279,41 @@ function Main() {
     echo "   LOG_DIR:            ${LOG_DIR}"
     echo ""
 
-    # add some functions (as FuseUp and FuseDown)
-    if   [[  "${TARGET}" == "geesefs" ]] ; then 
-        source scripts/geesefs.sh 
-    elif [[  "${TARGET}" == "goofys"  ]] ; then 
-        source scripts/goofys.sh 
-    elif [[  "${TARGET}" == "juicefs" ]] ; then 
-        source scripts/juicefs.sh 
-    elif [[  "${TARGET}" == "objectivefs" ]] ; then 
-        source scripts/objectivefs.sh  
-    elif [[  "${TARGET}" == "rclone" ]] ; then 
-        source scripts/rclone.sh      
-    elif [[  "${TARGET}" == "s3backer" ]] ; then 
-        source scripts/s3backer.sh   
-    elif [[  "${TARGET}" == "s3fs" ]] ; then 
-        source scripts/s3fs.sh      
-    elif [[  "${TARGET}" == "s3ql" ]] ; then 
-        source scripts/s3ql.sh        
-    else
-        echo "ERROR: unknown TARGET=${TARGET}"
-    fi
-
-    # make sure I have all the directories
+	     # make sure I have all the directories
     mkdir  -p ${BASE_DIR}  || true
     mkdir  -p ${TEST_DIR}  || true
     mkdir  -p ${CACHE_DIR} || true
     mkdir  -p ${LOG_DIR}   || true
+
+
+    # add some functions (as CreateBucket, RemoveBucket, FuseUp and FuseDown)
+    if   [[  "${TARGET}" == "geesefs" ]] ; then 
+        source scripts/geesefs.sh 
+
+    elif [[  "${TARGET}" == "goofys"  ]] ; then 
+        source scripts/goofys.sh 
+
+    elif [[  "${TARGET}" == "juicefs" ]] ; then 
+        source scripts/juicefs.sh 
+
+    elif [[  "${TARGET}" == "objectivefs" ]] ; then 
+        source scripts/objectivefs.sh
+
+    elif [[  "${TARGET}" == "rclone" ]] ; then 
+        source scripts/rclone.sh     
+
+    elif [[  "${TARGET}" == "s3backer" ]] ; then 
+        source scripts/s3backer.sh
+
+    elif [[  "${TARGET}" == "s3fs" ]] ; then 
+        source scripts/s3fs.sh
+		  
+    elif [[  "${TARGET}" == "s3ql" ]] ; then 
+        source scripts/s3ql.sh
+		  
+    else
+        echo "ERROR: unknown TARGET=${TARGET}"
+    fi
 
     # //////////////////////////////////////////////////////////////
     while (( "$#" )) ; do
@@ -364,19 +326,22 @@ function Main() {
         echo "# /////////////////////////////////////////////////////"
         echo "[${ACTION}] begin" 
 
-        if [[ "${ACTION}" == "create-bucket" ]] ; then
-            CreateBucket
-            aws s3 ls | grep ${BUCKET_NAME}
+
+			if [[ "${ACTION}" == "install" ]] ; then
+				Install_${TARGET}
+
+		  elif [[ "${ACTION}" == "uninstall" ]] ; then
+				Uninstall_${TARGET}
+
+        elif [[ "${ACTION}" == "create-bucket" ]] ; then
+            CreateBucket && aws s3 ls | grep ${BUCKET_NAME}
 
         elif [[ "${ACTION}" == "remove-bucket" ]] ; then
-            RemoveBucket 
-            aws s3 ls     
+            RemoveBucket && aws s3 ls
 
         elif [[ "${ACTION}" == "clean-bucket" ]] ; then
             SECONDS=0
-            FuseUp
-            time -p rm -Rf ${TEST_DIR}/* 
-            FuseDown
+            FuseUp && time -p rm -Rf ${TEST_DIR}/* && FuseDown
             echo "${ACTION} done. Seconds: $SECONDS"
 
         elif [[ "${ACTION}" == "up" ]] ; then
@@ -386,34 +351,19 @@ function Main() {
             FuseDown 
 
         elif [[ "${ACTION}" == "find" ]] ; then
-            FuseUp 
-            find ${TEST_DIR}
-            FuseDown 
+            FuseUp && find ${TEST_DIR} && FuseDown 
 
         elif [[ "${ACTION}" == "touch" ]] ; then
             echo "it is working" > $TEST_DIR/it_is_working
 
-        elif [[ "${ACTION}" == "benchmark" ]] ; then
+        # "WARNING: remember to create-bucket
+		  # You can also check network traffic by:
+		  # nload -u M -U M
+        elif [[ "${ACTION}" == "fio-benchmark" ]] ; then
+            RunFioBenchmark $@
 
-            echo "*********************************************************"
-            echo "WARNING: remember to create-bucket"
-            echo "You can also check network traffic by:"
-            echo "  nload -u M -U M"
-            echo "*********************************************************"
-
-            TYPE=${12:?}
-            shift
-
-            if [[ "$TYPE" == "fio" ]]; then
-                RunBenchmarkFio $@
-            elif [[ "$TYPE" == "simple" ]]; then
-                RunBenchmarkSimple $@
-            else
-                echo "ERROR: unknown benchmark TYPE=$TYPE"
-                exit 1
-            fi
-
-            exit 0
+        elif [[ "${ACTION}" == "simple-benchmark" ]] ; then
+            RunSimpleBenchmark $@
 
         else
             echo "ERROR: unknown ACTION=${ACTION}"
@@ -426,7 +376,9 @@ function Main() {
     done
 }
 
-Main $@
+if [[ $# -ge 1 ]]; then
+	Main $@
+fi
 
 
 

@@ -7,6 +7,22 @@
 # cons: I need to know the size in advance
 #       here I am using a blocksize of 4M (network friendly)
 
+
+# //////////////////////////////////////////////////////////////////////////
+function Install_s3backer() {
+	sudo apt install -y s3backer
+	sudo sh -c 'echo user_allow_other >> /etc/fuse.conf'
+
+	# check the version
+	s3backer --version	
+}
+
+# //////////////////////////////////////////////////////////////////////////
+function Uninstall_s3backer() {
+	# nothing to do
+	echo "nothing to do"
+}
+
 # //////////////////////////////////////////////////////////////////
 function MountBackend() {
     echo "MountBackend  s3backer..."
@@ -24,10 +40,11 @@ function MountBackend() {
     echo "MountBackend  s3backer done"
 }
 
+
 # //////////////////////////////////////////////////////////////////
 function CreateBucket() {
     echo "CreateBucket  s3backer..."
-    BaseCreateBucket ${BUCKET_NAME} ${AWS_DEFAULT_REGION}
+    aws s3api create-bucket --bucket ${BUCKET_NAME} --region ${AWS_DEFAULT_REGION}
     MountBackend
     mkfs.ext4 \
         -E nodiscard \
@@ -36,10 +53,19 @@ function CreateBucket() {
     echo "CreateBucket s3backer done"
 }
 
+
+# //////////////////////////////////////////////////////////////////
+function RemoveBucket() {
+    # note: there is a prefix
+	aws s3 rb s3://${BUCKET_NAME} --force
+}
+
+
 # //////////////////////////////////////////////////////////////////
 function FuseUp(){
     echo "FuseUp s3backer..."
     sync && DropCache
+    mkdir -p ${TEST_DIR}
     MountBackend
     sudo mount \
         -o loop \
@@ -55,7 +81,7 @@ function FuseUp(){
 function FuseDown() {
     echo "FuseDown s3backer..."
     sync && DropCache
-    SudoRetry umount ${TEST_DIR}
+    Retry sudo umount ${TEST_DIR}
     Retry umount ${CACHE_DIR}/backend
     Retry rm -Rf ${BASE_DIR}
     echo "FuseDown s3backer done"
