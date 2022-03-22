@@ -81,18 +81,18 @@ export AWS_ACCESS_KEY_ID=XXXXX
 export AWS_SECRET_ACCESS_KEY=YYYYY
 export AWS_DEFAULT_REGION_REGION=us-east-1
 ```
-<br>
+
 ### (OPTIONAL) ObjectiveFS setup
-<br>
+
 To test ObjectiveFS you need to register [here](https://objectivefs.com/account/signup?l=signup). Pricing details are available [here](https://objectivefs.com/price?l=pricing). But you can create a *14-days try-and-buy version*. At the end of the registration process you will get a licence to be specified on your terminal (change as needed):
 
 ```
 # change as needed
 export OBJECTIVEFS_LICENSE=ZZZZZ
 ```
-<br>
+
 ### (OPTIONAL) JuiceFS setup
-<br>
+
 To test JuiceFs you will need a Redis server for metadata. You could use a [JuiceFS Cloud Software as a Service Service](https://juicefs.com/docs/cloud/) that is free up to `1TiB` with 10 mounts (see [pricing link](https://juicefs.com/pricing)). After the registration you need to create a `File System` in [https://juicefs.com/console/](https://juicefs.com/console/) named `nsdf-fuse-test-juicefs`. And you need to export the JuiceFS token into your terminal:
 
 ```
