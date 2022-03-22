@@ -107,7 +107,7 @@ Create a Virtual Machine as near as possible to your buckets; for example you cr
 Clone this repository:
 
 ```
-git clone [https://github.com/nsdf-fabric/nsdf-fuse-test](https://github.com/nsdf-fabric/nsdf-fuse-test)
+git clone https://github.com/nsdf-fabric/nsdf-fuse
 cd nsdf-fuse-test
 
 # this is needed to call nsdf-fuse command without the ./ prefix
