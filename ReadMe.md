@@ -1,120 +1,133 @@
-# NSDF-Fuse Repository
+# NSDF-Fuse 
 
-This repository is made of a single bash script `nsdf-fuse` to mount/unmount, test and benchmark `Object Storage` mounted as a FUSE filesystem.
 
-This is not optimal file/data access, since the preferite way is always to use direcly the S3 API, but nevertherless it is useful to 
-investigate how Object Storage will behave if mounted as a file system.
+This repository is made of a single bash script `nsdf-fuse` to mount/unmount, test, install, benchmark *S3-compatible Object Storage* mounted as a FUSE filesystem. 
 
-Specific instructions for specific vendors are contained inside `scripts/` directory. For example inside the `scripts/geesefs.sh` 
+We don't expect the file system to be 100% POSIX compliant. 
+
+We know mounting S3 as a file system is suboptimal (see [this link](https://www.reddit.com/r/aws/comments/dplfoa/why_is_s3fs_such_a_bad_idea/)); we know that using S3 API is the best in the S3-API world.
+
+Nevertherless we investigate here how Object Storage as a FUSE file system behaves.
+
+## Software solutions
+
+Specific instructions for specific vendors are contained inside `scripts/` directory. 
+
+For example inside the `scripts/geesefs.sh` 
 you will find code to mount/unmount using the GeeseFS solution.
 
-The solutions currently explored/investigated are:
+The considered solutions are:
 
-- `GeeseFS`  a good FUSE FS implementation over S3 (link https://github.com/yandex-cloud/geesefs)
+- `GeeseFS`  *a good FUSE FS implementation over S3* (link https://github.com/yandex-cloud/geesefs)
 
-- `Goofys` a high-performance, POSIX-ish Amazon S3 file system written in Go (link: https://github.com/kahing/goofys)
+- `Goofys` *a high-performance, POSIX-ish Amazon S3 file system written in Go* (link: https://github.com/kahing/goofys)
 
-- `JuiceFs` a distributed POSIX file system built on top of Redis and S3.  (link: JuiceFS is a distributed POSIX file system built on top of Redis and S3.)
+- `JuiceFs` *a distributed POSIX file system built on top of Redis and S3* (link: JuiceFS is a distributed POSIX file system built on top of Redis and S3.)
 
-- `ObjectiveFS` a  shared file system that scales automatically, with unlimited storage and high performance (link: https://objectivefs.com/)
+- `ObjectiveFS` *a  shared file system that scales automatically, with unlimited storage and high performance* (link: https://objectivefs.com/)
 
-- `RClone` is a "rsync for cloud storage" (link: https://github.com/rclone/rclone)
+- `RClone` *a rsync for cloud storage* (link: https://github.com/rclone/rclone)
 
-- `S3Backer` is a FUSE-based single file backing store via Amazon S3 (link: https://github.com/archiecobbs/s3backer)
+- `S3Backer` *a FUSE-based single file backing store via Amazon S3* (link: https://github.com/archiecobbs/s3backer)
 
-- `S3FS` FUSE-based file system backed by Amazon S3 (link: https://github.com/s3fs-fuse/s3fs-fuse)
+- `S3FS` *a FUSE-based file system backed by Amazon S3* (link: https://github.com/s3fs-fuse/s3fs-fuse)
 
-- `S3QL` a full featured file system for online data storage (link: https://github.com/s3ql/s3ql)
+- `S3QL` *a full featured file system for online data storage* (link: https://github.com/s3ql/s3ql)
 
-The benchmark that could be run are not meant to be optimized for showing the effectiviness of caching. 
+## Test explanation
 
-On the contrary we are tyring to simulate use cases where data is not cached, with **cold** access like after a boot, and mounting a brand new bucket.
+The benchmark are not meant to be optimized for showing the effectiviness of caching, neither for writing nor for reading.
 
-In general we focused our investigations to the following cases:
+On the contrary we are tyring to simulate use cases where data is not cached, with a *cold-like access*, like what happens after a reboot, and a brand new mount of the bucket.
 
-- sequential write with just one writer with big files (e.g. some `1GiB` files)
+Our tests focus on:
 
-- sequential read  with just one reader with big files (e.g. some `1GiB` files)
+- **sequential write** with just one writer with big `1GiB+` files
 
-- sequential write with multiple writers concurrently accessing big files (e.g. some `1GiB` files)
+- **sequential read**  with just one reader with big `1GiB+` files
 
-- sequential read  with multiple readers concurrently accessing big files (e.g. some `1GiB` files)
+- **sequential write** with multiple `8+` writers concurrently accessing big `1GiB+` files
 
-- random writes with multiple writers accessing small files (e.g. lots of `64KiB` files)
+- **sequential read**  with multiple `8+` readers concurrently accessing big `1GiB+` file
 
-- random reads  with multiple readers accessing small files (e.g. lots of `64KiB` files)
+- **random writes** with multiple `16+` writers accessing small `64KiB+` files
 
-we built test so that the same file is not accessed twice, this is to avoid any caching factor.
+- **random reads**  with multiple `16+` readers () accessing small `64KiB+` files
 
-# Considerations
+In our tests, the same file should not be accessed twice to avoid any caching factor. Where it's not possible to disable caching, cache files are setup to be minimal.
 
-Some notes/considerations before starting testing by your own:
+## Considerations
 
-- there are some very dangerous command that could be run (like `clean-all`). It'a better to use this tests on accounts where you are sure you can afford to loose all the buckets associated.
+Some notes/considerations before starting testing your own:
 
-- We are more interested in reading than writing. Without some advanced locking-mechanism is practically impossible to have
-  concurrent writing without having later big problems or, even worst, a corrupted file system
+- there are some very dangerous command that could be run (like `clean-all`). It'a better to use an S3 accounts where you are sure you can afford to loose all the data.
+
+- We are more interested in *reading* than *writing* because without some locking-mechanism or journaled file system is impossible to have concurrent writing on the same data without incurring in corrupted data
   
-- Running `fio` benchmark we get inconsistent/unbelievable results. This could be related to the fact that we don't have
-  any control on operations going on internally and it's difficult to understand/control the caching effect.
+- `fio` benchmarks led inconsistent results. This could be related to the fact that we don't have any control on operations going on internally and it's difficult to control the caching effect. For example when `fio` is "layouting file" it could be that it is already caching the data in RAM/DISK cache.
 
-- We prefer free (i.e. not commercial solution) solutions. The only pay-per-use solution here is `ObjectiveFS`
+- We prefer free solutions. The only *pay-per-use* solution in our list is `ObjectiveFS` (see [here](https://objectivefs.com/price?l=pricing) for pricing)
 
-- We prefer serverless solution, to cut down cost of maintanance and hardware. The only  `servfull` solution here is `JuiceFs`.
+- We prefer *serverless solution* to cut down maintanance costs or hardware costs. The only  `server-full` solution here is `JuiceFs`, that is using a noSQL Redis database for metadata storage.
 
-- All tests are repeated at least 3 times. This is to avoid the *cloud noisy neighbor (ref https://www.techtarget.com/searchcloudcomputing/definition/noisy-neighbor-cloud-computing-performance). But to have real numbers probably we need to repeat tests multiple times, in different days/regions/platforms/hour ranges etc.
+- All tests are repeated 3+ times. This is to avoid the [cloud noisy neighbor problem](https://www.techtarget.com/searchcloudcomputing/definition/noisy-neighbor-cloud-computing-performance). 
 
-- All tests are run internally in one region. For example if the data is stored
-  in the `us-east-1` AWS region, then the FUSE file system is mounter/run/used
-  on a virtual machine (AWS Ec2 instance) running in the same region. We don't
-  care too much here about latency induced by geographic distance, but we want to
-  investigate more on the intrinsic limitation induced by the FUSe mounting.
+- To have even more real numbers we need to repeat the same tests multiple times, in different days/regions/platforms/hour ranges etc.
 
-# NSDF-FUSE setup
+- All tests are run in one region near the the Virtual Machine (VM) . For example if the data is stored in the `us-east-1`  region, then the FUSE file system is mounted on a VM in the same region. We don't care too much here about latency induced by geographic distance, but we want to
+  investigate more on the intrinsic limitation induced by the FUSE mounting itself.
 
-We need one AWS S3 account to run all test.
+## Preliminary setup
 
-**As said before, make sure you don't have data in production you cannot afford to loose during the benchmarks**.
+We need one AWS S3 account to run all test. **Make sure you are using an account with no meaninful data i.e. you can afford to loose all your buckets during the benchmarks**.
 
-All the tests use by default Amazon S3. The code could be easily (?) generalized to specify different endpoints for example to  S3-like vendors (e.g. Wasabi/OSN). It will be interesting to double check if we will get very different behaviours with different vendors.
+All the tests use Amazon S3 endpoint. The code could be easily generalized to use different endpoints from different vendors (e.g. Wasabi/OSN). 
 
-To start the testing we first need to define the access key, secret access key and region to be used (change as needed):
+To start tests we first need to define the access key, secret access key and region to be used. So in a terminal enter your full credentials (**note: this is a very unsecure way to specify credentials**):
 
 ```
+# change as needed
 export AWS_ACCESS_KEY_ID=XXXXX
 export AWS_SECRET_ACCESS_KEY=YYYYY
 export AWS_DEFAULT_REGION_REGION=us-east-1
 ```
 
-## ObjectiveFS setup
+<br>
 
-To test ObjectiveFS you need to register [here](https://objectivefs.com/account/signup?l=signup). Pricing details are available [here](https://objectivefs.com/price?l=pricing). You can create a 14-days try-and-buy version. At the end of the registration process you will get a licence to be specified on your terminal (change as needed):
+### (OPTIONAL) ObjectiveFS setup
+
+To test ObjectiveFS you need to register [here](https://objectivefs.com/account/signup?l=signup). 
+
+Pricing details are available [here](https://objectivefs.com/price?l=pricing). You can create a 14-days try-and-buy version. 
+
+At the end of the registration process you will get a licence to be specified on your terminal (change as needed):
 
 ```
+# change as needed
 export OBJECTIVEFS_LICENSE=ZZZZZ 
 ```
 
-## JuiceFS setup
 
-To test JuiceFs you will need a Redis server for metadata. You could use a SaaS Service [here](https://juicefs.com/docs/cloud/) that is free up to `1TiB` with 10 mounts (see [pricing link](https://juicefs.com/pricing)). After the registration you need to create a `File System` in https://juicefs.com/console/ named `nsdf-fuse-test-juicefs`. And you need to export the JuiceFS token into your terminal:
+### (OPTIONAL) JuiceFS setup
+
+To test JuiceFs you will need a Redis server for metadata. 
+
+You could use a  [JuiceFS Cloud Software as a Service Service](https://juicefs.com/docs/cloud/) that is free up to `1TiB` with 10 mounts (see [pricing link](https://juicefs.com/pricing)). 
+
+After the registration you need to create a `File System` in https://juicefs.com/console/ named `nsdf-fuse-test-juicefs`. 
+
+And you need to export the JuiceFS token into your terminal:
 
 ```
+# change as needed
 export JUICE_TOKEN=KKKKK
 ```
 
+<br>
 
+## Comprehensive explanation
 
-# How to run the test
-
-First you need to create a VM (e.g. AWS Ec2 instances) possibly as near as possible your bucket; for example you want to create the VM and the bucket in the same region (e.g. `us-east-1`).
-
-You need to setup the virtual machine with all the dependencies. 
-
-```
-nsdf-fuse update-os
-nsdf-fuse install-fio
-```
-
+Create a Virtual Machine as near as possible to your buckets; for example you may want to create the VM in the `us-east-1` region and the bucket in the same `us-east-1` region.
 
 Clone this repository:
 
@@ -124,77 +137,75 @@ cd nsdf-fuse-test
 export PATH=$PWD:$PATH
 ```
 
-<br>
-Then you need to install the binaries to run tests. For example to install` geesefs` you can do:
+Setup your VM with all the dependencies, assuming you are under `Ubuntu 20.x` you can do:
 
 ```
-TARGET=geesefs
-nsdf-fuse $TARGET install
+nsdf-fuse update-os
+nsdf-fuse install-fio
 ```
 
-<br>
-To create a test bucket you can do:
+Then install the software binaries:
 
 ```
-nsdf-fuse $TARGET create-bucket
+for TARGET in geesefs goofys juicefs objectivefs rclone s3backer s3fs; do
+  nsdf-fuse install
+done
 ```
 
-<br>
-this will create a bucket named `nsdf-fuse-test-$TARGET`.
-
-
-To mount the bucket as a FUSE file system:
+To create a new bucket (named "nsdf-fuse-test-$BUCKET") you do:
 
 ```
-nsdf-fuse $TARGET up
+export TARGET=...insert your target here...
+nsdf-fuse create-bucket
 ```
 
-<br>
-To create a random file with random content:
+
+To mount the new bucket as a FUSE file system:
 
 ```
-nsdf-fuse $TARGET touch
+nsdf-fuse up
 ```
 
-<br>
+To create a random file (useful for testing purpouse):
+
+```
+nsdf-fuse touch
+```
+
 To list all files inside the bucket:
 
 ```
-nsdf-fuse $TARGET find
+nsdf-fuse find
 ```
 
-<br>
 To unmount the FUSE file system and remove all cache so far created (thus simulating later a cold boot):
 
 ```
-nsdf-fuse $TARGET down
+nsdf-fuse down
 ```
 
-<br>
-To completely remove the test bucket (NOTE: this will destroy any data inside it!):
+To completely remove the test bucket (NOTE: this will destroy all the data inside it!):
 
 ```
-nsdf-fuse $TARGET remove-bucket
+nsdf-fuse remove-bucket
 ```
 
-<br>
-A last **VERY DANGEROUS** command is the `clean-all` command that will remove all buckets associated with the AWS account. Do not use for production accounts:
+A last and **VERY DANGEROUS** command is the `clean-all` command. It will remove all buckets starting with the name `nsdf-fuse-test`. And it will recursively remove all files in `/tmp/nsdf-fuse' directory:
 
 ```
-# DANGEROUS 
-# It forces a full cleaning (==destroy) of all buckets, mounts, files, caches etc
-# lot of paths are hardcoded
+# *** very very DANGEROUS ***
 nsdf-fuse clean-all
 ```
 
 
-# Run benchmarks
+## Quick and dirty tests
 
-Update your VM and install binaries for each vendor (note that `s3ql` is not compatible with others):
+Update your VM and install binaries for each vendor:
 
 ```
 nsdf-fuse   update-os
 nsdf-fuse   install-fio
+
 nsdf-fuse   geesefs     install
 nsdf-fuse   goofys      install
 nsdf-fuse   juicefs     install
@@ -202,59 +213,39 @@ nsdf-fuse   objectivefs install
 nsdf-fuse   rclone      install
 nsdf-fuse   s3backer    install
 nsdf-fuse   s3fs        install
-# nsdf-fuse s3ql        install (COMMENTED, see paragraph below)
+
+# commenting s3ql since it seems not to be compatible with others
+# it uses fuse3 instead of fuse, see paragraph below
+# nsdf-fuse s3ql        install 
 ```
 
-<br>
 Then you can repeat the test for a specific targets.
 
-<br>
-
-**NOTE: I am using `clean-all` and I am removing all files from `/tmp` here; so make sure you can afford to loose all buckets and loose all `/tmp` files**
-
-```
-echo "***********************************************"
-echo " *** VERY VERY dangerous here               ***"
-echo " *** I am destroying all buckets            ***"
-echo " *** and removing all /tmp/* files          ***"
-echo " *** make sure this is what you really want ***"
-echo " **********************************************"
-
-read -p "Are you sure? " -n 1 -r
-echo    # (optional) move to a new line
-if [[ ! $REPLY =~ ^[Yy]$ ]]
-then
-
-   TARGET=geesefs
-
-	# this is simple test
-   nsdf-fuse clean-all && \
-     sudo rm -Rf /tmp/* && \
-     nsdf-fuse $TARGET create-bucket && \
-     nsdf-fuse $TARGET simple-benchmark 
-
-	# this is FIO test
-   nsdf-fuse clean-all && \
-     sudo rm -Rf /tmp/* && \
-     nsdf-fuse $TARGET create-bucket && \
-     nsdf-fuse $TARGET fio-benchmark 
-
-fi
 ```
 
-# S3QL specific
+# change as needed
+export TARGET=geesefs
 
-`s3ql` is the only not compatible with other tests since it is using `fuse3` vs the normal `fuse` used by other TARGETS. 
+# simple (bash-based) tests
+nsdf-fuse clean-all && nsdf-fuse create-bucket && nsdf-fuse simple-benchmark 
 
-You first install `s3ql` (automatically disabling all other tests):
+# FIO tests
+nsdf-fuse clean-all && nsdf-fuse create-bucket && nsdf-fuse fio-benchmark 
+```
+
+## S3QL specific
+
+`s3ql` is the only not compatible with other tests since it is using `fuse3` vs the normal `fuse`. 
+
+You first install `s3ql` (this means to automatically disabling all other tests):
 
 ```
 nsdf-fuse s3ql install
 ```
 
-Then you can run the `s3sq` tests as above. 
+Then you can run the `s3sq` tests as described above. 
 
-And finally you can re-enable other tests (i.e. re-enable `fuse` by removing `fuse3`):
+And finally you can re-enable other tests:
 
 
 ```
@@ -262,7 +253,7 @@ nsdf-fuse s3ql uninstall
 ```
 
 
-# Some sparse/ useful commands
+## Useful commands
 
 
 Check network traffic:
@@ -293,4 +284,25 @@ List object inside bucket:
 
 ```
 aws s3 ls s3:://<bucket_name> 
+```
+
+
+Check drive usage:
+
+```
+df -h
+```
+
+Check directory usage:
+
+```
+sudo du -sh /* 2>/dev/null
+```
+
+
+Reclaim space for deleted files:
+
+```
+sudo lsof | grep deleted 
+sudo kill -9 1889585
 ```

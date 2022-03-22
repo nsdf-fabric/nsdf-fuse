@@ -3,6 +3,7 @@
 
 # //////////////////////////////////////////////////////////////////////////
 function Install_objectivefs() {
+
 	wget -q https://objectivefs.com/user/download/asn7gu3nd/objectivefs_6.9.1_amd64.deb
 	sudo dpkg -i objectivefs_6.9.1_amd64.deb
 	rm objectivefs_6.9.1_amd64.deb
@@ -58,12 +59,6 @@ EOF
 }
 
 
-# //////////////////////////////////////////////////////////////////
-function RemoveBucket() {
-    # note: there is a prefix
-	aws s3 rb s3://${BUCKET_NAME} --force
-}
-
 
 # //////////////////////////////////////////////////////////////////
 function FuseUp() {
@@ -77,7 +72,7 @@ function FuseUp() {
         -o mt \
         s3://${BUCKET_NAME} \
         ${TEST_DIR}
-    CheckMount
+    CheckMount ${TEST_DIR}
     sudo chmod a+rwX -R ${TEST_DIR}
     echo "FuseUp objectivefs done"
 }

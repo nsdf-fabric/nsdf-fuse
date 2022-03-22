@@ -34,7 +34,7 @@ function CreateBucket() {
 
 # //////////////////////////////////////////////////////////////////
 function RemoveBucket() {
-    # note: there is a prefix
+    # note: there is a prefix (!)
 	aws s3 rb s3://juicefs-${BUCKET_NAME} --force
 }
 
@@ -49,7 +49,7 @@ function FuseUp() {
         --cache-dir=${CACHE_DIR} \
         --log=${LOG_DIR}/log.log \
         --max-uploads=150 
-    CheckMount
+    CheckMount ${TEST_DIR}
     echo "FuseUp juicefs done"
 }
 

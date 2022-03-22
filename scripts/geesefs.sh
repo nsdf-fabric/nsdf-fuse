@@ -26,23 +26,6 @@ function Uninstall_geesefs() {
 	rm -f ${HOME}/.aws/credentials
 }
 
-
-
-# /////////////////////////////////////////////////////////////////
-function CreateBucket()
-{
-	aws s3api create-bucket --bucket ${BUCKET_NAME} --region ${AWS_DEFAULT_REGION}
-}
-
-
-
-# //////////////////////////////////////////////////////////////////
-function RemoveBucket() {
-    # note: there is a prefix
-	aws s3 rb s3://${BUCKET_NAME} --force
-}
-
-
 # //////////////////////////////////////////////////////////////////
 function FuseUp() {
     echo "FuseUp geesefs..."
@@ -58,7 +41,7 @@ function FuseUp() {
         --endpoint https://s3.${AWS_DEFAULT_REGION}.amazonaws.com \
         ${BUCKET_NAME} \
         ${TEST_DIR}
-    CheckMount
+    CheckMount ${TEST_DIR}
     echo "FuseUp geesefs done"
 }
 

@@ -30,17 +30,6 @@ function Uninstall_s3fs() {
 	rm -f ${HOME}/.s3fs
 }
 
-# /////////////////////////////////////////////////////////////////
-function CreateBucket()
-{
-	aws s3api create-bucket --bucket ${BUCKET_NAME} --region ${AWS_DEFAULT_REGION}
-}
-
-# //////////////////////////////////////////////////////////////////
-function RemoveBucket() {
-    # note: there is a prefix
-	aws s3 rb s3://${BUCKET_NAME} --force
-}
 
 
 # //////////////////////////////////////////////////////////////////
@@ -50,7 +39,7 @@ function FuseUp() {
 	 DropCache
     mkdir -p ${TEST_DIR}
 
-    # disablng caching
+    # disablng caching (use_cache empty)
     s3fs ${BUCKET_NAME} ${TEST_DIR} \
         -o passwd_file=${HOME}/.s3fs \
         -o endpoint=${AWS_DEFAULT_REGION} \
@@ -63,7 +52,7 @@ function FuseUp() {
         -o multireq_max=30 \
         -o allow_other 
 
-    CheckMount
+    CheckMount ${TEST_DIR}
     echo "FuseUp s3fs done"
 }
 

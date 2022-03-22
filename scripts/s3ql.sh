@@ -49,8 +49,6 @@ function Uninstall_s3ql() {
 	rm -f ~/.s3ql/authinfo2
 }
 
-
-
 # //////////////////////////////////////////////////////////////////
 function CreateBucket() {
 
@@ -66,11 +64,6 @@ function CreateBucket() {
 }
 
 
-# //////////////////////////////////////////////////////////////////
-function RemoveBucket() {
-    # note: there is a prefix
-	aws s3 rb s3://${BUCKET_NAME} --force
-}
 
 # //////////////////////////////////////////////////////////////////
 function FuseUp() {
@@ -85,7 +78,7 @@ function FuseUp() {
             s3://${AWS_DEFAULT_REGION}/${BUCKET_NAME} \
             ${TEST_DIR} 
     
-    CheckMount
+    CheckMount ${TEST_DIR}
     echo "FuseUp s3ql done"
 }
 

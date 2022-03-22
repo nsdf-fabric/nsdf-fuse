@@ -28,36 +28,23 @@ function Uninstall_rclone() {
 	rm -f ~/.config/rclone/rclone.conf
 }
 
-
-# /////////////////////////////////////////////////////////////////
-function CreateBucket()
-{
-	aws s3api create-bucket --bucket ${BUCKET_NAME} --region ${AWS_DEFAULT_REGION}
-}
-
-# //////////////////////////////////////////////////////////////////
-function RemoveBucket() {
-    # note: there is a prefix
-	aws s3 rb s3://${BUCKET_NAME} --force
-}
-
-
 # //////////////////////////////////////////////////////////////////
 function FuseUp() {
     echo "FuseUp rclone..."
     sync && DropCache
     mkdir -p ${TEST_DIR}
 
+	# note: disabling the cache
     rclone mount \
         nsdf-test-rclone:${BUCKET_NAME} \
         ${TEST_DIR} \
         --uid $UID \
         --daemon \
-        --vfs-cache-mode writes \
+        --vfs-cache-mode off \
         --use-server-modtime \
         --cache-dir ${CACHE_DIR} 
     
-    CheckMount
+    CheckMount ${TEST_DIR}
     echo "FuseUp rclone done"
 }
 

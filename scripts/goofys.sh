@@ -18,18 +18,6 @@ function Uninstall_goofys() {
 
 
 
-# /////////////////////////////////////////////////////////////////
-function CreateBucket()
-{
-	aws s3api create-bucket --bucket ${BUCKET_NAME} --region ${AWS_DEFAULT_REGION}
-}
-
-# //////////////////////////////////////////////////////////////////
-function RemoveBucket() {
-    # note: there is a prefix
-	aws s3 rb s3://${BUCKET_NAME} --force
-}
-
 
 # //////////////////////////////////////////////////////////////////
 function FuseUp() {
@@ -38,7 +26,7 @@ function FuseUp() {
     mkdir -p ${TEST_DIR}
     # Goofys does not have an on disk data cache (checkout catfs)
     goofys --region ${AWS_DEFAULT_REGION} ${BUCKET_NAME} ${TEST_DIR}
-    CheckMount
+    CheckMount ${TEST_DIR}
     echo "FuseUp goofys done"
 }
 

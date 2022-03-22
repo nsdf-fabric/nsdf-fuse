@@ -27,17 +27,20 @@ function Uninstall_s3backer() {
 function MountBackend() {
     echo "MountBackend  s3backer..."
     mkdir -p ${CACHE_DIR}/backend
+	 OVERALL_SIZE=256G
+
+	# disabling caching
+   # --blockCacheFile=${CACHE_DIR}/block_cache_file
+	# --blockCacheSize=???
+   # --blockCacheThreads=64  
     Retry s3backer \
             --accessId=${AWS_ACCESS_KEY_ID} \
             --accessKey=${AWS_SECRET_ACCESS_KEY} \
             --region=${AWS_DEFAULT_REGION}  \
-            --blockCacheFile=${CACHE_DIR}/block_cache_file \
             --blockSize=4M \
-            --size=1T \
-            --blockCacheThreads=64  \
+            --size=$OVERALL_SIZE \
             ${BUCKET_NAME} ${CACHE_DIR}/backend
-    
-    CheckMount
+    CheckMount ${CACHE_DIR}/backend
     echo "MountBackend  s3backer done"
 }
 
@@ -54,26 +57,14 @@ function CreateBucket() {
     echo "CreateBucket s3backer done"
 }
 
-
-# //////////////////////////////////////////////////////////////////
-function RemoveBucket() {
-    # note: there is a prefix
-	aws s3 rb s3://${BUCKET_NAME} --force
-}
-
-
 # //////////////////////////////////////////////////////////////////
 function FuseUp(){
     echo "FuseUp s3backer..."
     sync && DropCache
-    mkdir -p ${TEST_DIR}
+    Retry mkdir -p ${TEST_DIR}
     MountBackend
-    sudo mount \
-        -o loop \
-        -o discard \
-        ${CACHE_DIR}/backend/file \
-        ${TEST_DIR}  
-    mount | grep ${TEST_DIR}
+    sudo mount -o loop  -o discard ${CACHE_DIR}/backend/file ${TEST_DIR}  
+	 CheckMount ${TEST_DIR}
     sudo chmod a+rwX -R ${TEST_DIR}
     echo "FuseUp s3backer done"
 }
