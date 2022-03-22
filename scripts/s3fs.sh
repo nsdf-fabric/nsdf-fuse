@@ -40,13 +40,19 @@ function FuseUp() {
     mkdir -p ${TEST_DIR}
 
     # disablng caching (use_cache empty)
+	 # NOTE: cache is disabled by default but if you force it by:
+    # -o use_cache="" \
+	 # NOTE 2: i think s3fs is doing some write back so some disk
+	 #         is used no matter what
+	 
+    # -o max_stat_cache_size=0 \
+	 # it creates the cache 
+	 # see https://github.com/s3fs-fuse/s3fs-fuse/issues/1016
     s3fs ${BUCKET_NAME} ${TEST_DIR} \
         -o passwd_file=${HOME}/.s3fs \
         -o endpoint=${AWS_DEFAULT_REGION} \
-        -o use_cache="" \
         -o cipher_suites=AESGCM \
         -o max_background=1000 \
-        -o max_stat_cache_size=100000 \
         -o multipart_size=52 \
         -o parallel_count=30 \
         -o multireq_max=30 \

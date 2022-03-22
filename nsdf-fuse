@@ -278,7 +278,7 @@ function InstallFIO() {
 # //////////////////////////////////////////////////////////////////
 function CreateBucket()
 {
-	aws s3api create-bucket --bucket ${BUCKET_NAME:?} --region ${:?}
+	aws s3api create-bucket --bucket ${BUCKET_NAME:?} --region ${AWS_DEFAULT_REGION:?}
 }
 
 # //////////////////////////////////////////////////////////////////

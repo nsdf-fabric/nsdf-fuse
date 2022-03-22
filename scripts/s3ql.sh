@@ -71,10 +71,12 @@ function FuseUp() {
     sync && DropCache
     mkdir -p ${TEST_DIR}
 
-    # --cachesize <size> Cache size in KiB (default: autodetect).
+	 # --cachesize <size> Cache size in KiB (default: autodetect).
+	 # here I am setting to 64MiB to keep it minimal
     Retry mount.s3ql \
             --cachedir ${CACHE_DIR} \
             --log ${LOG_DIR}/log \
+				--cachesize $(( 64 * 1024 )) \
             s3://${AWS_DEFAULT_REGION}/${BUCKET_NAME} \
             ${TEST_DIR} 
     
