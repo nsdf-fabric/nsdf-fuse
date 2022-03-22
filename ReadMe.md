@@ -277,3 +277,15 @@ Reclaim space for deleted files:
 sudo lsof | grep deleted 
 sudo kill -9 1889585
 ```
+
+# Next
+
+- [ ] Add a pass-throught FUSE file system like [StackFS](https://github.com/sbu-fsl/fuse-stackfs/blob/master/StackFS_LowLevel/StackFS_LowLevel.c) and record all file access. This way we can tell post-execution what is the best way to mount the data
+- [ ] Create an automatic pipeline to repeat all the tests every N days
+- [ ] Write papers
+- [ ] Create a full-fledged SDK to simplify the mounting process
+- [ ] Verify compatibility with Windows (WebDav?)
+
+
+
+
