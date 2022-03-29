@@ -215,6 +215,17 @@ A last and **VERY DANGEROUS** command is the `clean-all` command. It will remove
 nsdf-fuse clean-all
 ```
 
+
+# Endpoints
+
+Specify different endpoints:
+
+- GeeseFs     AWS(ok) Wasabi(ok)
+- Goofys      AWS(ok) Wasabi(ok)
+- JuiceFs     AWS(ok) Wasabi(ok)
+- ObjectiveFs AWS(ok) Wasabi(ok)
+- rclone      AWS(ok) Wasabi(ok)
+
 ## Quick tests
 
 Update your VM and install binaries for each vendor:
@@ -291,15 +302,6 @@ sudo kill -9 1889585
 
 ```
 
-# Endpoints
-
-Specify different endpoints:
-
-- GeeseFs     AWS(ok) Wasabi(ok)
-- Goofys      AWS(ok) Wasabi(ok)
-- JuiceFs     AWS(ok) Wasabi(ok)
-- ObjectiveFs AWS(ok) Wasabi(ok)
-- 
 
 # Next
 
