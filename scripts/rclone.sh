@@ -15,7 +15,7 @@ provider=Other
 access_key_id=${AWS_ACCESS_KEY_ID}
 secret_access_key=${AWS_SECRET_ACCESS_KEY}
 region=${AWS_DEFAULT_REGION} 
-endpoint=https://s3.${AWS_DEFAULT_REGION}.amazonaws.com
+endpoint=${AWS_S3_ENDPOINT_URL}
 EOF
 	chmod 600 ~/.config/rclone/rclone.conf
 

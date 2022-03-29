@@ -39,6 +39,7 @@ function MountBackend() {
             --region=${AWS_DEFAULT_REGION}  \
             --blockSize=4M \
             --size=$OVERALL_SIZE \
+				--endpoint=${AWS_S3_ENDPOINT_URL} \
             ${BUCKET_NAME} ${CACHE_DIR}/backend
     CheckMount ${CACHE_DIR}/backend
     echo "MountBackend  s3backer done"

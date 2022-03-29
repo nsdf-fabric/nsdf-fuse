@@ -1,12 +1,11 @@
 #!/bin/bash
 
-# IMPORTANT: internally the real bucket name will be juicefs-${BUCKET_NAME}
-
-
 
 # //////////////////////////////////////////////////////////////////////////
 function Install_juicefs() {
-	echo "NOTE you need to create a File System named `juicefs-nsdf-fuse-test-juicefs` (see https://juicefs.com/console/)."
+	echo "*** NOTE you need to create IN ADVANCE a File System named `nsdf-fuse-test-juicefs` 
+	echo "*** see https://juicefs.com/console/"
+
 	wget -q https://juicefs.com/static/juicefs
 	sudo mv juicefs /usr/bin
 	chmod +x /usr/bin/juicefs
@@ -20,29 +19,19 @@ function Uninstall_juicefs() {
 	sudo rm -f /usr/bin/juicefs
 }
 
-
-# //////////////////////////////////////////////////////////////////
-function CreateBucket() {
-    echo "CreateBucket  juicefs..."
-    juicefs auth \
-        ${BUCKET_NAME} \
-        --token ${JUICE_TOKEN} \
-        --accesskey ${AWS_ACCESS_KEY_ID} \
-        --secretkey ${AWS_SECRET_ACCESS_KEY}  
-    echo "CreateBucket  juicefs done"
-}
-
-# //////////////////////////////////////////////////////////////////
-function RemoveBucket() {
-    # note: there is a prefix (!)
-	aws s3 rb s3://juicefs-${BUCKET_NAME} --force
-}
-
 # //////////////////////////////////////////////////////////////////
 function FuseUp() {
     echo "FuseUp juicefs ..."
     sync && DropCache
     mkdir -p ${TEST_DIR}
+
+	# first authenticate
+	juicefs auth ${BUCKET_NAME} \
+		--token ${JUICE_TOKEN} \
+		--accesskey ${AWS_ACCESS_KEY_ID} \
+		--secretkey ${AWS_SECRET_ACCESS_KEY}  
+
+
     juicefs mount \
         ${BUCKET_NAME} \
         ${TEST_DIR} \

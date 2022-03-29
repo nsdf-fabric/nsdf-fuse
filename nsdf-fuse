@@ -52,6 +52,11 @@ function CheckMount() {
 }
 
 # /////////////////////////////////////////////////////////////////
+function ListBuckets() {
+	aws --endpoint-url ${AWS_S3_ENDPOINT_URL:?} s3 ls
+}
+
+# /////////////////////////////////////////////////////////////////
 function CleanAll() {
 
 	echo "Cleaning all..."
@@ -70,26 +75,24 @@ function CleanAll() {
 		done
 
 		# remove buckets
-		__buckets__=$(aws s3 ls | grep "nsdf-fuse-test" | cut -d" " -f3)
+		__buckets__=$(ListBuckets  | grep "nsdf-fuse-test" | cut -d" " -f3)
 		for it in $__buckets__; do 
-			echo "Removing bucket $it"
-			echo "aws s3 rb s3://$it --force "
-			aws s3 rb s3://$it --force 
+			echo "BaseRemoveBucket $it --force "
+			BaseRemoveBucket $it
 		done
 
 		# remove bucket dir
-		
 		sudo rm -Rf /tmp/nsdf-fuse
 
 	done
 
-	echo "Mounted filesystem:"
-	$(mount | grep ${BUCKETS_DIR} | cut -d" " -f3)
+	echo "*** Mounted filesystem:"
+	mount | grep ${BUCKETS_DIR} | cut -d" " -f3
 
-	echo "Existing remote buckets:"
-	$(aws s3 ls | grep "nsdf-fuse-test" | cut -d" " -f3)
+	echo "*** Existing remote buckets:"
+	ListBuckets  | grep "nsdf-fuse-test" | cut -d" " -f3
 
-	echo "Content of ${BUCKETS_DIR}:"
+	echo "*** Content of ${BUCKETS_DIR}:"
 	find ${BUCKETS_DIR}/ 2>/dev/null || true
 }
 
@@ -275,16 +278,25 @@ function InstallFIO() {
 	fio --version
 }
 
+
 # //////////////////////////////////////////////////////////////////
-function CreateBucket()
-{
-	aws s3api create-bucket --bucket ${BUCKET_NAME:?} --region ${AWS_DEFAULT_REGION:?}
+function BaseCreateBucket() {
+	aws --endpoint-url ${AWS_S3_ENDPOINT_URL:?} s3api create-bucket --bucket ${1:?} --region ${AWS_DEFAULT_REGION:?} 
+}
+
+# //////////////////////////////////////////////////////////////////
+function BaseRemoveBucket() {
+	aws --endpoint-url ${AWS_S3_ENDPOINT_URL:?} s3 rb s3://${1:?} --force 
+}
+
+# //////////////////////////////////////////////////////////////////
+function CreateBucket() {
+	BaseCreateBucket ${BUCKET_NAME:?}
 }
 
 # //////////////////////////////////////////////////////////////////
 function RemoveBucket() {
-	# note: there is a prefix
-	aws s3 rb s3://${BUCKET_NAME:?} --force
+	BaseRemoveBucket ${BUCKET_NAME:?}
 }
 
 # //////////////////////////////////////////////////////////////////
@@ -303,6 +315,7 @@ function ConfigTarget() {
 	echo "NSDF-fuse v1.0"
 	echo "   BUCKET_NAME=${BUCKET_NAME}"
 	echo "   AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}"
+	echo "   AWS_S3_ENDPOINT_URL=${AWS_S3_ENDPOINT_URL}"
 	echo "   BASE_DIR=${BASE_DIR}"
 	echo "   TEST_DIR=${TEST_DIR}"
 	echo "   CACHE_DIR=${CACHE_DIR}"
@@ -315,35 +328,7 @@ function ConfigTarget() {
 	mkdir  -p ${LOG_DIR}   || true
 
 	# add some functions (as CreateBucket, RemoveBucket, FuseUp and FuseDown)
-	if   [[  "${__target__}" == "geesefs" ]] ; then 
-		source scripts/geesefs.sh 
-
-	elif [[  "${__target__}" == "goofys"  ]] ; then 
-		source scripts/goofys.sh 
-
-	elif [[  "${__target__}" == "juicefs" ]] ; then 
-		source scripts/juicefs.sh 
-
-	elif [[  "${__target__}" == "objectivefs" ]] ; then 
-		source scripts/objectivefs.sh
-
-
-	elif [[  "${__target__}" == "rclone" ]] ; then 
-		source scripts/rclone.sh	
-
-	elif [[  "${__target__}" == "s3backer" ]] ; then 
-		source scripts/s3backer.sh
-
-	elif [[  "${__target__}" == "s3fs" ]] ; then 
-		source scripts/s3fs.sh
-		  
-	elif [[  "${__target__}" == "s3ql" ]] ; then 
-		source scripts/s3ql.sh
-
-	else
-		echo "ERROR: unknown TARGET=${__target__}"
-		exit 1
-	fi
+	source scripts/${__target__}.sh 
 }
 
 
@@ -354,9 +339,25 @@ function Main() {
 	export BUCKETS_DIR=/tmp/nsdf-fuse/buckets
 	mkdir -p $BUCKETS_DIR
 
+	# default config
+	if [[ "${AWS_DEFAULT_REGION}" == "" ]] ; then
+		AWS_DEFAULT_REGION="us-east-1"
+	fi	
+
+	# default config
+	if [[ "${AWS_S3_ENDPOINT_URL}" == "" ]] ; then
+		AWS_S3_ENDPOINT_URL="https://s3.${AWS_DEFAULT_REGION}.amazonaws.com"
+	fi	
+
 	if [[ "$1" == "clean-all" ]] ; then
 		CleanAll
 		exit 0
+
+	elif [[ "$1" == "list-buckets" ]] ; then
+		ListBuckets
+		exit 0
+
+
 
 	elif [[ "$1" == "update-os" ]] ; then
 		UpdateOS
@@ -385,11 +386,13 @@ function Main() {
 
 		elif [[ "${ACTION}" == "create-bucket" ]] ; then
 			CreateBucket 
-			aws s3 ls | grep ${BUCKET_NAME}
+			echo "*** Check test bucket IS listed here:"
+			ListBuckets  | grep ${BUCKET_NAME}
 
 		elif [[ "${ACTION}" == "remove-bucket" ]] ; then
 			RemoveBucket 
-			aws s3 ls
+			echo "*** Check that test bucket IS NOT listed here:"
+			ListBuckets
 
 		elif [[ "${ACTION}" == "clean-bucket" ]] ; then
 			SECONDS=0
@@ -405,9 +408,8 @@ function Main() {
 			FuseDown 
 
 		elif [[ "${ACTION}" == "find" ]] ; then
-			FuseUp 
+			echo "*** List of files in the bucket:"
 			find ${TEST_DIR} 
-			FuseDown 
 
 		elif [[ "${ACTION}" == "touch" ]] ; then
 			echo "nsdf_test_body" > ${TEST_DIR}/nsdf_test_file

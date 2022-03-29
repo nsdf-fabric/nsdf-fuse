@@ -2,19 +2,11 @@
 
 # see https://github.com/yandex-cloud/geesefs
 
-
 # //////////////////////////////////////////////////////////////////////////
 function Install_geesefs() {
 	wget https://github.com/yandex-cloud/geesefs/releases/latest/download/geesefs-linux-amd64
 	sudo mv geesefs-linux-amd64 /usr/bin/geesefs
 	chmod a+x /usr/bin/geesefs
-
-	mkdir -p ${HOME}/.aws
-	cat << EOF > ${HOME}/.aws/credentials
-[default]
-aws_access_key_id=${AWS_ACCESS_KEY_ID}
-aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}
-EOF
 
 	# check the version
 	geesefs --version
@@ -29,16 +21,27 @@ function Uninstall_geesefs() {
 # //////////////////////////////////////////////////////////////////
 function FuseUp() {
     echo "FuseUp geesefs..."
+
+	# create the credentials (just in case they have been change)
+	mkdir -p ${HOME}/.aws
+	cat << EOF > ${HOME}/.aws/credentials
+[default]
+aws_access_key_id=${AWS_ACCESS_KEY_ID}
+aws_secret_access_key=${AWS_SECRET_ACCESS_KEY}
+EOF
+
     sync && DropCache
     mkdir -p ${TEST_DIR}
-    # memory limit is in MB
+
+    # NOTE: memory limit is in MB
+	 # add --debug -f 
     geesefs \
         --cache ${CACHE_DIR} \
         --no-checksum \
         --max-flushers 32 \
         --max-parallel-parts 32 \
         --part-sizes 25 \
-        --endpoint https://s3.${AWS_DEFAULT_REGION}.amazonaws.com \
+        --endpoint ${AWS_S3_ENDPOINT_URL} \
         ${BUCKET_NAME} \
         ${TEST_DIR}
     CheckMount ${TEST_DIR}

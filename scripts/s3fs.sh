@@ -50,7 +50,7 @@ function FuseUp() {
 	 # see https://github.com/s3fs-fuse/s3fs-fuse/issues/1016
     s3fs ${BUCKET_NAME} ${TEST_DIR} \
         -o passwd_file=${HOME}/.s3fs \
-        -o endpoint=${AWS_DEFAULT_REGION} \
+        -o endpoint=${AWS_S3_ENDPOINT_URL} \
         -o cipher_suites=AESGCM \
         -o max_background=1000 \
         -o multipart_size=52 \

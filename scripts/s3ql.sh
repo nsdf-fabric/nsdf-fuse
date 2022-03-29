@@ -32,7 +32,7 @@ function Install_s3ql() {
 	mkdir -p ${HOME}/.s3ql/
 	cat << EOF > ~/.s3ql/authinfo2
 [s3-test]
-storage-url: s3://${AWS_DEFAULT_REGION}/${BUCKET_NAME}
+storage-url: s3://${AWS_S3_ENDPOINT_URL}/${BUCKET_NAME}
 backend-login: ${AWS_ACCESS_KEY_ID}
 backend-password: ${AWS_SECRET_ACCESS_KEY}
 EOF
@@ -53,13 +53,13 @@ function Uninstall_s3ql() {
 function CreateBucket() {
 
     echo "CreateBucket s3ql..."
-    aws s3api create-bucket --bucket ${BUCKET_NAME} --region ${AWS_DEFAULT_REGION}
+    aws s3api create-bucket --bucket ${BUCKET_NAME} --region ${AWS_DEFAULT_REGION} --endpoint-url ${AWS_S3_ENDPOINT_URL}
 
     mkfs.s3ql \
         --cachedir ${CACHE_DIR} \
         --log ${LOG_DIR}/log \
         --plain \
-        s3://${AWS_DEFAULT_REGION}/${BUCKET_NAME}
+        s3://${AWS_S3_ENDPOINT_URL}/${BUCKET_NAME}
     echo "CreateBucket s3ql done"
 }
 
@@ -77,7 +77,7 @@ function FuseUp() {
             --cachedir ${CACHE_DIR} \
             --log ${LOG_DIR}/log \
 				--cachesize $(( 64 * 1024 )) \
-            s3://${AWS_DEFAULT_REGION}/${BUCKET_NAME} \
+            s3://${AWS_S3_ENDPOINT_URL}/${BUCKET_NAME} \
             ${TEST_DIR} 
     
     CheckMount ${TEST_DIR}
