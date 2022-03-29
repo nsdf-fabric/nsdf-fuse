@@ -18,7 +18,7 @@ function Install_objectivefs() {
 	sudo chmod 600 /etc/objectivefs.env/*
 
 	# check the version
-	mount.objectivefs help 
+	mount.objectivefs help 2>&1 | grep -i "Welcome to ObjectiveFS"
 }
 
 # //////////////////////////////////////////////////////////////////////////
@@ -30,19 +30,22 @@ function Uninstall_objectivefs() {
 	sudo rm -f /etc/objectivefs.env/OBJECTIVEFS_PASSPHRASE
 }
 
-
 # //////////////////////////////////////////////////////////////////
 # see https://objectivefs.com/howto/performance-amazon-efs-vs-objectivefs-large-files
 function CreateBucket() {
 
     echo "CreateBucket  objectivefs..."
 
+    # objectivefs does not seem to support https (!)
+    __endpoint__=${AWS_S3_ENDPOINT_URL//https/http}/${BUCKET_NAME}
+
+
     cat << EOF > create_bucket.sh
 #!/usr/bin/expect -f
 set timeout -1
-spawn mount.objectivefs create -l ${AWS_DEFAULT_REGION} ${BUCKET_NAME}
+spawn mount.objectivefs create ${__endpoint__}
 match_max 100000
-expect -exact "for s3://${BUCKET_NAME}): "
+expect -exact "Verify passphrase"
 send -- "${OBJECTIVEFS_LICENSE}\r"
 expect eof
 EOF
@@ -67,10 +70,13 @@ function FuseUp() {
     sync && DropCache
     mkdir -p ${TEST_DIR}
     
+    # objectivefs does not seem to support https (!)
+    __endpoint__=${AWS_S3_ENDPOINT_URL//https/http}/${BUCKET_NAME}
+
     export  DISKCACHE_PATH=${CACHE_DIR}
     sudo mount.objectivefs \
         -o mt \
-        s3://${BUCKET_NAME} \
+        ${__endpoint__} \
         ${TEST_DIR}
     CheckMount ${TEST_DIR}
     sudo chmod a+rwX -R ${TEST_DIR}

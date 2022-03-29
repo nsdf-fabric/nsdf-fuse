@@ -21,11 +21,11 @@ function FuseUp() {
     mkdir -p ${TEST_DIR}
 
 	# first authenticate
+    # NOTE: the endpoint and the region are configured MANUALLY from the JuiceFS data portal
 	juicefs auth ${BUCKET_NAME} \
 		--token ${JUICE_TOKEN} \
 		--accesskey ${AWS_ACCESS_KEY_ID} \
 		--secretkey ${AWS_SECRET_ACCESS_KEY}  
-
 
     juicefs mount \
         ${BUCKET_NAME} \

@@ -295,9 +295,11 @@ sudo kill -9 1889585
 
 Specify different endpoints:
 
-- GeeseFs AWS(ok) Wasabi(ok)
-- Goofys  AWS(ok) Wasabi(ok)
-- JuiceFs
+- GeeseFs     AWS(ok) Wasabi(ok)
+- Goofys      AWS(ok) Wasabi(ok)
+- JuiceFs     AWS(ok) Wasabi(ok)
+- ObjectiveFs AWS(ok) Wasabi(ok)
+- 
 
 # Next
 
