@@ -1,15 +1,10 @@
 #!/bin/bash
 
-
 # //////////////////////////////////////////////////////////////////////////
 function Install_juicefs() {
-	echo "*** NOTE you need to create IN ADVANCE a File System named `nsdf-fuse-test-juicefs` 
-	echo "*** see https://juicefs.com/console/"
-
 	wget -q https://juicefs.com/static/juicefs
 	sudo mv juicefs /usr/bin
 	chmod +x /usr/bin/juicefs
-
 	# check the version
 	juicefs version	
 }

@@ -117,6 +117,11 @@ After the registration you need to create a `File System` in [https://juicefs.co
 
 The default is using AWS as endpoint, but if you want for example use another endpoint (like Wasabi or IBM cloud) you must manually set it in the UI.
 
+Go to the *Advanced Settings* and remove the `juicefs-` prefix.
+
+Other settings (such as Block size=4MB and Compression=lz4) should be fine.
+
+
 Then setup the JuiceFS token into your terminal:
 
 ```
@@ -142,7 +147,6 @@ Setup your VM with all the dependencies, assuming you are under `Ubuntu 20.x` yo
 
 ```
 nsdf-fuse update-os
-nsdf-fuse install-fio
 ```
 
 Install the FUSE software binaries (replace TARGET with any of `geesefs`, `goofys` ... see `scripts directory for allowed names):
@@ -217,7 +221,6 @@ Update your VM and install binaries for each vendor:
 
 ```
 nsdf-fuse   update-os
-nsdf-fuse   install-fio
 
 nsdf-fuse   geesefs     install
 nsdf-fuse   goofys      install
@@ -246,6 +249,7 @@ nsdf-fuse clean-all && nsdf-fuse create-bucket && nsdf-fuse simple-benchmark
 
 # FIO tests 
 # COMMENTED: we are getting inconsistent results
+# nsdf-fuse install-fio
 # nsdf-fuse clean-all && nsdf-fuse create-bucket && nsdf-fuse fio-benchmark
 ```
 
