@@ -3,10 +3,9 @@
 # see http://manpages.ubuntu.com/manpages/bionic/man1/s3fs.1.html
 # see https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-s3fs
 
-
 # //////////////////////////////////////////////////////////////////////////
-# NOTE: install from scratch, old version is buggy
 function Install_s3fs() {
+    # NOTE: install from scratch, old version is buggy
 	sudo apt-get install -y autotools-dev automake libcurl4-openssl-dev libxml2-dev libssl-dev libfuse-dev fuse pkg-config
 	git clone https://github.com/s3fs-fuse/s3fs-fuse.git
 	pushd s3fs-fuse
@@ -15,13 +14,9 @@ function Install_s3fs() {
 	make
 	sudo make install
 	sudo mv /usr/local/bin/s3fs /usr/bin/
-	echo ${AWS_ACCESS_KEY_ID}:${AWS_SECRET_ACCESS_KEY} > ${HOME}/.s3fs
-	chmod 600 ${HOME}/.s3fs
 	popd
 	rm -Rf s3fs-fuse
-
-	# check the version
-	s3fs --version
+	s3fs --version # check the version
 }
 
 # //////////////////////////////////////////////////////////////////////////
@@ -31,13 +26,14 @@ function Uninstall_s3fs() {
 }
 
 
-
 # //////////////////////////////////////////////////////////////////
 function FuseUp() {
     echo "FuseUp s3fs..."
     sync 
-	 DropCache
-    mkdir -p ${TEST_DIR}
+	DropCache
+
+	echo ${AWS_ACCESS_KEY_ID}:${AWS_SECRET_ACCESS_KEY} > ${HOME}/.s3fs
+	chmod 600 ${HOME}/.s3fs
 
     # disablng caching (use_cache empty)
 	 # NOTE: cache is disabled by default but if you force it by:
@@ -46,11 +42,12 @@ function FuseUp() {
 	 #         is used no matter what
 	 
     # -o max_stat_cache_size=0 \
-	 # it creates the cache 
-	 # see https://github.com/s3fs-fuse/s3fs-fuse/issues/1016
+	# it creates the cache 
+	# see https://github.com/s3fs-fuse/s3fs-fuse/issues/1016
+    mkdir -p ${TEST_DIR}
     s3fs ${BUCKET_NAME} ${TEST_DIR} \
         -o passwd_file=${HOME}/.s3fs \
-        -o endpoint=${AWS_S3_ENDPOINT_URL} \
+        -o url=${AWS_S3_ENDPOINT_URL} \
         -o cipher_suites=AESGCM \
         -o max_background=1000 \
         -o multipart_size=52 \
