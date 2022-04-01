@@ -42,6 +42,7 @@ function FuseDown() {
     echo "FuseDown juicefs..."
     sync && DropCache
     Retry umount ${TEST_DIR}
+    Retry rm -Rf ${CACHE_DIR} 
     Retry rm -Rf ${BASE_DIR}
     echo "FuseDown juicefs done"
 }

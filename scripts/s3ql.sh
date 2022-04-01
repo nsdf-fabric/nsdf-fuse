@@ -100,6 +100,7 @@ function FuseDown() {
     echo "FuseDown s3ql..."
     sync && DropCache
     Retry umount.s3ql --log ${LOG_DIR}/log ${TEST_DIR}
+    Retry rm -Rf ${CACHE_DIR} 
     Retry rm -Rf ${BASE_DIR}
     echo "FuseDown s3ql done"
 }

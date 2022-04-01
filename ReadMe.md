@@ -252,6 +252,8 @@ And finally you may want to uninstall it:
 
 ```
 nsdf-fuse uninstall
+
+# you need to install `fuse` back for other targets
 nsdf-fuse update-os
 ```
 

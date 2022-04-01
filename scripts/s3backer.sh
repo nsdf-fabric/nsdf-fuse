@@ -30,18 +30,20 @@ function MountBackend() {
     # I need to know the size in advance (not good!)
     OVERALL_SIZE=256G
 
-	# disabling caching
-    # --blockCacheFile=${CACHE_DIR}/block_cache_file
-	# --blockCacheSize=???
-    # --blockCacheThreads=64  
-    # --debug-http
+	# NOTE: disabling caching
+	# see https://manpages.org/s3backer
+	# --blockCacheFile=FILE
+   #    Specify a file in which to store cached data blocks. 
+	#   Without this flag, the block cache lives entirely in process memory and the cached data disappears when s3backer is stopped.
+
+    # if you have problems add `--debug-http``
     Retry s3backer  \
             --accessId=${AWS_ACCESS_KEY_ID} \
             --accessKey=${AWS_SECRET_ACCESS_KEY} \
             --region=${AWS_DEFAULT_REGION}  \
             --blockSize=4M \
-            --size=$OVERALL_SIZE \
-			--baseURL=${AWS_S3_ENDPOINT_URL}/  \
+            --size=${OVERALL_SIZE} \
+			   --baseURL=${AWS_S3_ENDPOINT_URL}/  \
             ${BUCKET_NAME} \
             ${CACHE_DIR}/backend
 
@@ -73,7 +75,7 @@ function FuseUp(){
     Retry mkdir -p ${TEST_DIR}
     MountBackend
     sudo mount -o loop  -o discard ${CACHE_DIR}/backend/file ${TEST_DIR}  
-	CheckMount ${TEST_DIR}
+	 CheckMount ${TEST_DIR}
     sudo chmod a+rwX -R ${TEST_DIR}
     echo "FuseUp s3backer done"
 }
@@ -84,6 +86,7 @@ function FuseDown() {
     sync && DropCache
     Retry sudo umount ${TEST_DIR}
     Retry umount ${CACHE_DIR}/backend
+    Retry rm -Rf ${CACHE_DIR} 
     Retry rm -Rf ${BASE_DIR}
     echo "FuseDown s3backer done"
 }

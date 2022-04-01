@@ -52,6 +52,7 @@ function FuseDown() {
     echo "FuseDown rclone..."
     sync && DropCache
     Retry umount ${TEST_DIR}
+    Retry rm -Rf ${CACHE_DIR} 
     Retry rm -Rf ${BASE_DIR}
     echo "FuseDown rclone done"
 }

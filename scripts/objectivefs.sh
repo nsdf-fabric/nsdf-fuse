@@ -74,6 +74,12 @@ function FuseUp() {
     __endpoint__=${AWS_S3_ENDPOINT_URL//https/http}/${BUCKET_NAME}
 
     export  DISKCACHE_PATH=${CACHE_DIR}
+
+	# see https://objectivefs.com/userguide#disk-cache
+	# The disk cache uses DISKCACHE_SIZE and DISKCACHE_PATH environment variables 
+	# To enable disk cache, set DISKCACHE_SIZE
+	# NOTE: here I am not enabling DISKCACHE_SIZE (!)
+
     sudo mount.objectivefs \
         -o mt \
         ${__endpoint__} \
@@ -89,6 +95,7 @@ function FuseDown() {
     echo "FuseDown objectivefs..."
     sync && DropCache
     Retry sudo umount ${TEST_DIR} 
+    Retry sudo rm -Rf ${CACHE_DIR} 
     Retry sudo rm -Rf ${BASE_DIR}
     echo "FuseDown objectivefs done"
 }

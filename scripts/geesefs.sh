@@ -53,6 +53,7 @@ function FuseDown() {
     echo "FuseDown geesefs..."
     sync && DropCache
     Retry umount ${TEST_DIR}
+    Retry rm -Rf ${CACHE_DIR} 
     Retry rm -Rf ${BASE_DIR}
     echo "FuseDown geesefs done"
 }

@@ -28,8 +28,8 @@ function Uninstall_s3fs() {
 
 # //////////////////////////////////////////////////////////////////
 function FuseUp() {
-    echo "FuseUp s3fs..."
-    sync 
+	echo "FuseUp s3fs..."
+	sync 
 	DropCache
 
 	echo ${AWS_ACCESS_KEY_ID}:${AWS_SECRET_ACCESS_KEY} > ${HOME}/.s3fs
@@ -53,7 +53,8 @@ function FuseUp() {
         -o multipart_size=52 \
         -o parallel_count=30 \
         -o multireq_max=30 \
-        -o allow_other 
+		  -o use_cache=${CACHE_DIR} \
+		  -o del_cache
 
     CheckMount ${TEST_DIR}
     echo "FuseUp s3fs done"
@@ -65,6 +66,7 @@ function FuseDown() {
     echo "FuseDown s3fs..."
     sync && DropCache
     Retry umount ${TEST_DIR}
+    Retry rm -Rf ${CACHE_DIR} 
     Retry rm -Rf ${BASE_DIR}
     echo "FuseDown s3fs done"
 }
