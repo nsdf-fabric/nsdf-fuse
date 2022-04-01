@@ -137,7 +137,7 @@ Clone this repository:
 
 ```
 git clone https://github.com/nsdf-fabric/nsdf-fuse
-cd nsdf-fuse-test
+cd nsdf-fuse
 
 # this is needed to call nsdf-fuse command without the ./ prefix
 export PATH=$PWD:$PATH
@@ -216,52 +216,24 @@ nsdf-fuse clean-all
 ```
 
 
-# Endpoints
-
-Specify different endpoints:
-
-- GeeseFs     AWS(ok) Wasabi(ok)
-- Goofys      AWS(ok) Wasabi(ok)
-- JuiceFs     AWS(ok) Wasabi(ok)
-- ObjectiveFs AWS(ok) Wasabi(ok)
-- rclone      AWS(ok) Wasabi(ok)
 
 ## Quick tests
 
-Update your VM and install binaries for each vendor:
-
-```
-nsdf-fuse   update-os
-
-nsdf-fuse   geesefs     install
-nsdf-fuse   goofys      install
-nsdf-fuse   juicefs     install
-nsdf-fuse   objectivefs install
-nsdf-fuse   rclone      install
-nsdf-fuse   s3backer    install
-nsdf-fuse   s3fs        install
-
-# commenting s3ql since it seems not to be compatible with others
-# it uses fuse3 instead of fuse, see paragraph below
-# nsdf-fuse s3ql        install
-```
 
 Then you can repeat the test for a specific targets.
 
 ```
 # change as needed
 export TARGET=geesefs
+nsdf-fuse install
 
 # simple (bash-based) tests
 # first you remove anything from last tests
 # then create a bucket for the testing
 # and finally run the real tests
-nsdf-fuse clean-all && nsdf-fuse create-bucket && nsdf-fuse simple-benchmark 
-
-# FIO tests 
-# COMMENTED: we are getting inconsistent results
-# nsdf-fuse install-fio
-# nsdf-fuse clean-all && nsdf-fuse create-bucket && nsdf-fuse fio-benchmark
+nsdf-fuse clean-all && 
+  nsdf-fuse create-bucket && 
+  nsdf-fuse simple-benchmark 
 ```
 
 ## S3QL specific
