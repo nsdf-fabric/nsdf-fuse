@@ -137,7 +137,7 @@ Clone this repository:
 
 ```
 git clone https://github.com/nsdf-fabric/nsdf-fuse
-cd nsdf-fuse-test
+cd nsdf-fuse
 
 # this is needed to call nsdf-fuse command without the ./ prefix
 export PATH=$PWD:$PATH
@@ -216,15 +216,6 @@ nsdf-fuse clean-all
 ```
 
 
-# Endpoints
-
-Specify different endpoints:
-
-- GeeseFs     AWS(ok) Wasabi(ok)
-- Goofys      AWS(ok) Wasabi(ok)
-- JuiceFs     AWS(ok) Wasabi(ok)
-- ObjectiveFs AWS(ok) Wasabi(ok)
-- rclone      AWS(ok) Wasabi(ok)
 
 ## Quick tests
 
