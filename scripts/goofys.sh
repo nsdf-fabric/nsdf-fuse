@@ -22,7 +22,9 @@ function FuseUp() {
     sync && DropCache
     mkdir -p ${TEST_DIR}
     # Goofys does not have an on disk data cache (checkout catfs)
-    goofys --region ${AWS_DEFAULT_REGION} --endpoint ${AWS_S3_ENDPOINT_URL} ${BUCKET_NAME} ${TEST_DIR}
+    goofys \
+	 	--region ${AWS_DEFAULT_REGION} \
+		 --endpoint ${AWS_S3_ENDPOINT_URL} ${BUCKET_NAME} ${TEST_DIR}
     CheckMount ${TEST_DIR}
     echo "FuseUp goofys done"
 }

@@ -3,9 +3,7 @@
 
 # //////////////////////////////////////////////////////////////////////////
 function Install_rclone() {
-	wget https://downloads.rclone.org/v1.57.0/rclone-v1.57.0-linux-amd64.deb
-	sudo dpkg -i rclone-v1.57.0-linux-amd64.deb
-	rm rclone-v1.57.0-linux-amd64.deb
+	curl https://rclone.org/install.sh | sudo bash
 	# check the version
 	rclone --version	
 }

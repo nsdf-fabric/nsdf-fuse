@@ -235,6 +235,7 @@ function RunSimpleBenchmark() {
 		FuseUp
 		for (( I=0 ; I < NUM_JOBS ; I++ )) ; do 
 			mkdir -p $REMOTE/$I
+			touch $REMOTE/$I/.keep # avoid problem of empty directory
 		done
 		FuseDown
 
