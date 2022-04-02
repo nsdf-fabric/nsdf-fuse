@@ -119,6 +119,7 @@ function EndTest() {
 	sync 
 	FuseDown
 	echo "end test [$1] $(( ( $TOT_GB * $GiB ) / ( $MiB * ${SECONDS} ) ))MiB/sec TOT_SECONDS=$SECONDS "
+	printf '%b\n' "Throughput [$1] $(( ( $TOT_GB * $GiB ) / ( $MiB * ${SECONDS} ) ))MiB/sec TOT_SECONDS=$SECONDS " >> $OUTPUT_FILE
 	
 }
 
