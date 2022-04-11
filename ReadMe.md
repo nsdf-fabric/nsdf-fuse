@@ -8,6 +8,9 @@ We know mounting S3 as a file system is suboptimal (see [this link](https://www.
 
 Nevertheless we investigate here how Object Storage as a FUSE file system behaves.
 
+![image.png](images/nsdf-fuse.png)  
+_NSDF-FUSE, a testbed for evaluating settings and performance of FUSE-based file systems on top of S3-compatible object storage._
+
 ## FUSE software solutions
 
 Specific instructions for specific vendors are contained inside `scripts/` directory.
@@ -26,7 +29,6 @@ The considered solutions are:
 * `S3FS` *a FUSE-based file system backed by Amazon S3* (link: https://github.com/s3fs-fuse/s3fs-fuse)
 * `S3QL` *a full featured file system for online data storage* (link: [https://github.com/s3ql/s3ql](https://github.com/s3ql/s3ql))
 
-![image.png](images/nsdf-fuse.png)
 <br>
 ## Test insights
 
