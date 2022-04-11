@@ -25,9 +25,8 @@ The considered solutions are:
 * `S3Backer` *a FUSE-based single file backing store via Amazon S3* (link: https://github.com/archiecobbs/s3backer)
 * `S3FS` *a FUSE-based file system backed by Amazon S3* (link: https://github.com/s3fs-fuse/s3fs-fuse)
 * `S3QL` *a full featured file system for online data storage* (link: [https://github.com/s3ql/s3ql](https://github.com/s3ql/s3ql))
-*
 
-![image.png](images/comparison.png)
+![image.png](images/nsdf-fuse.png)
 <br>
 ## Test insights
 
