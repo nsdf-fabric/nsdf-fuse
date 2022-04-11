@@ -27,9 +27,8 @@ The considered solutions are:
 * `RClone` *a rsync for cloud storage* (link: https://github.com/rclone/rclone)
 * `S3Backer` *a FUSE-based single file backing store via Amazon S3* (link: https://github.com/archiecobbs/s3backer)
 * `S3FS` *a FUSE-based file system backed by Amazon S3* (link: https://github.com/s3fs-fuse/s3fs-fuse)
-* `S3QL` *a full featured file system for online data storage* (link: [https://github.com/s3ql/s3ql](https://github.com/s3ql/s3ql))
+* `S3QL` *a full featured file system for online data storage* (link: [https://github.com/s3ql/s3ql](https://github.com/s3ql/s3ql))  
 
-<br>
 ## Test insights
 
 The benchmark are not meant to be optimized for showing the effectiveness of caching. On the contrary we are tyring to simulate use cases where data is not cached, with a *cold-like access*, like what happens after a reboot, and a brand new mount of the bucket.
